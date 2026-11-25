@@ -1,0 +1,2352 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wacho.mp3 v2 - Estación de Curaduría Musical</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            hud: {
+              bg: '#08090c',
+              panel: '#101319',
+              card: '#161b24',
+              border: '#232a38',
+              amber: '#f59e0b',
+              cyan: '#06b6d4',
+              emerald: '#10b981',
+              rose: '#f43f5e'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #08090c;
+      color: #f1f5f9;
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+      min-height: 100vh;
+    }
+    .vinyl-spin {
+      animation: spin 7s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .hud-panel {
+      background: rgba(16, 19, 25, 0.92);
+      border: 1px solid #232a38;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #0d1016;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #283142;
+      border-radius: 3px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #3b4861;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-amber-500/30 selection:text-amber-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <!-- HEADER -->
+    <header class="hud-panel rounded-2xl px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <svg class="w-11 h-11 shrink-0 drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]" viewBox="0 0 48 48" fill="none" aria-label="CD">
+          <defs>
+            <linearGradient id="cdIridescentV2" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#f59e0b" />
+              <stop offset="35%" stop-color="#38bdf8" />
+              <stop offset="70%" stop-color="#a855f7" />
+              <stop offset="100%" stop-color="#10b981" />
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="24" r="21" fill="url(#cdIridescentV2)" fill-opacity="0.22" stroke="url(#cdIridescentV2)" stroke-width="2.2" />
+          <path d="M10 15 A16 16 0 0 1 31 9" stroke="#ffffff" stroke-opacity="0.55" stroke-width="2" stroke-linecap="round" />
+          <path d="M17 39 A16 16 0 0 0 38 33" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round" />
+          <circle cx="24" cy="24" r="9.5" fill="#101319" stroke="#e2e8f0" stroke-opacity="0.55" stroke-width="1.5" />
+          <circle cx="24" cy="24" r="4" fill="#08090c" stroke="#f59e0b" stroke-width="1.6" />
+        </svg>
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="font-display text-xl sm:text-2xl font-bold tracking-tight text-white">Wacho<span class="text-amber-400">.mp3</span> <span class="text-xs font-mono text-cyan-400 align-middle">v2</span></h1>
+            <span class="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded bg-amber-500/10 text-amber-400 border border-amber-500/25">Audio HUD</span>
+          </div>
+          <p class="text-xs text-slate-400">Estación de curaduría discográfica &amp; exploración profunda</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 flex-wrap">
+        <div id="syncBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Historial Persistente Activo</span>
+        </div>
+        <button id="btnResetStage" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-xs font-medium text-slate-300 transition">
+          Limpiar Escenario
+        </button>
+      </div>
+    </header>
+
+    <!-- TABS DE MODO -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <button id="tabDiscover" type="button" class="px-4 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition flex items-center gap-2">
+        <span>Descubrir Random</span>
+      </button>
+      <button id="tabArtist" type="button" class="px-4 py-2.5 rounded-xl font-semibold text-sm bg-hud-panel text-slate-300 hover:text-white border border-hud-border transition flex items-center gap-2">
+        <span>Buscar Artista / Discografía</span>
+      </button>
+    </div>
+
+    <!-- PANEL DE CONTROLES: MODO DESCUBRIR -->
+    <section id="panelDiscover" class="hud-panel rounded-2xl p-5 sm:p-6 space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- COLUMNA 1: GÉNERO MUSICAL ESPECÍFICO GLOBAL (CON TEXTO PREDICTIVO) -->
+        <div class="bg-hud-card/80 border border-hud-border rounded-xl p-4 flex flex-col justify-between space-y-3 relative">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <label for="genreInput" class="text-xs font-mono uppercase tracking-wider text-amber-400 font-semibold">1. Género Específico Global</label>
+              <button id="btnClearGenre" type="button" class="text-[11px] text-slate-400 hover:text-white">Limpiar</button>
+            </div>
+            <div class="relative">
+              <input id="genreInput" type="text" autocomplete="off" placeholder="Escribí un género (ej: Rap, Rock, Pop, Jazz, Funk, Disco, Candombe, Techno...)" class="w-full px-3.5 py-2.5 rounded-lg bg-slate-950 border border-slate-700/90 focus:border-amber-500 focus:outline-none text-sm text-white placeholder-slate-500" />
+              <div id="genreDropdown" class="hidden absolute z-40 left-0 right-0 mt-1.5 bg-slate-950 border border-amber-500/40 rounded-xl shadow-2xl max-h-72 overflow-y-auto custom-scroll divide-y divide-slate-800/80"></div>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-400">
+              <span id="genreMetaBadge" class="font-mono text-amber-300/90">Texto predictivo global separado por estilo y región</span>
+              <span id="genreCatalogCount" class="font-mono text-slate-500"></span>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed pt-1">
+            Incluye géneros básicos directos (Rap, Rock, Pop, Jazz, Funk, Blues, Reggae, Electrónica, Metal, Folk) y estilos regionales o subgéneros.
+          </p>
+        </div>
+
+        <!-- COLUMNA 2: BANDAS DE REFERENCIA + AUTOCOMPLETADO + DETECCIÓN ADN -->
+        <div class="bg-hud-card/80 border border-hud-border rounded-xl p-4 flex flex-col justify-between space-y-3 relative">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <label for="refBandInput" class="text-xs font-mono uppercase tracking-wider text-cyan-400 font-semibold">2. Bandas de Referencia (Máx 5)</label>
+              <span id="refCount" class="text-[11px] font-mono text-slate-400">0/5</span>
+            </div>
+            <div class="relative">
+              <div class="flex gap-2">
+                <input id="refBandInput" type="text" autocomplete="off" placeholder="Ej: Nas, Héctor Lavoe, Damas Gratis, João Gilberto..." class="w-full px-3.5 py-2.5 rounded-lg bg-slate-950 border border-slate-700/90 focus:border-cyan-500 focus:outline-none text-sm text-white placeholder-slate-500" />
+                <button id="btnAddRef" type="button" class="px-3 py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-semibold transition">+</button>
+              </div>
+              <div id="autocompleteDropdown" class="hidden absolute z-40 left-0 right-0 mt-1.5 bg-slate-950 border border-cyan-500/40 rounded-xl shadow-2xl max-h-64 overflow-y-auto custom-scroll divide-y divide-slate-800/80"></div>
+            </div>
+            <div id="refTagsContainer" class="flex flex-wrap gap-1.5 min-h-[28px]"></div>
+          </div>
+
+          <div id="detectedDnaBox" class="p-2.5 rounded-lg bg-slate-950/90 border border-slate-800 text-xs space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-[11px] text-slate-400">ADN Sonoro Detectado:</span>
+              <button id="btnApplyDetectedGenre" type="button" class="hidden text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 underline">Aplicar género</button>
+            </div>
+            <p id="detectedDnaText" class="text-slate-300 text-[11px] leading-relaxed">Escribí una banda y detecto su estilo específico y región automáticamente.</p>
+          </div>
+        </div>
+
+        <!-- COLUMNA 3: RANGO DE AÑOS (1900 - 2026) -->
+        <div class="bg-hud-card/80 border border-hud-border rounded-xl p-4 flex flex-col justify-between space-y-3">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono uppercase tracking-wider text-emerald-400 font-semibold">3. Rango de Años (1900–2026)</span>
+              <button id="btnResetYears" type="button" class="text-[11px] text-slate-400 hover:text-white">Todos</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex-1">
+                <label for="yearFrom" class="block text-[10px] font-mono text-slate-400 mb-1">DESDE</label>
+                <input id="yearFrom" type="number" min="1900" max="2026" placeholder="1900" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:outline-none text-sm font-mono text-white" />
+              </div>
+              <button id="btnEqualYear" type="button" title="Repetir el mismo año en Hasta" class="mt-4 px-2.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-400 font-mono text-xs font-bold transition">=</button>
+              <div class="flex-1">
+                <label for="yearTo" class="block text-[10px] font-mono text-slate-400 mb-1">HASTA</label>
+                <input id="yearTo" type="number" min="1900" max="2026" placeholder="2026" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:outline-none text-sm font-mono text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <button type="button" data-from="1960" data-to="1969" class="decade-btn px-2 py-1 rounded text-[11px] font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300">60s</button>
+            <button type="button" data-from="1970" data-to="1979" class="decade-btn px-2 py-1 rounded text-[11px] font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300">70s</button>
+            <button type="button" data-from="1980" data-to="1989" class="decade-btn px-2 py-1 rounded text-[11px] font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300">80s</button>
+            <button type="button" data-from="1990" data-to="1999" class="decade-btn px-2 py-1 rounded text-[11px] font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300">90s</button>
+            <button type="button" data-from="2000" data-to="2009" class="decade-btn px-2 py-1 rounded text-[11px] font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300">00s</button>
+            <button type="button" data-from="2010" data-to="2019" class="decade-btn px-2 py-1 rounded text-[11px] font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300">10s</button>
+            <button type="button" data-from="2020" data-to="2026" class="decade-btn px-2 py-1 rounded text-[11px] font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300">20s</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NIVEL DE PROFUNDIDAD -->
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono uppercase tracking-wider text-slate-400">Nivel de Profundidad en la Batea</span>
+          <span id="depthLabel" class="text-xs font-mono text-amber-400">NIVEL 1 • ESENCIALES &amp; CLÁSICOS</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="depthSelector">
+          <button type="button" data-depth="1" class="depth-btn p-3 rounded-xl border border-amber-500 bg-amber-500/15 text-left transition">
+            <div class="text-xs font-mono font-bold text-amber-400">1. Esenciales</div>
+            <div class="text-[11px] text-slate-300 mt-0.5">Obras maestras y pilares</div>
+          </button>
+          <button type="button" data-depth="2" class="depth-btn p-3 rounded-xl border border-hud-border bg-hud-card/60 hover:border-slate-600 text-left transition">
+            <div class="text-xs font-mono font-bold text-slate-200">2. Culto</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Joyas respetadas de escena</div>
+          </button>
+          <button type="button" data-depth="3" class="depth-btn p-3 rounded-xl border border-hud-border bg-hud-card/60 hover:border-slate-600 text-left transition">
+            <div class="text-xs font-mono font-bold text-slate-200">3. Indie / Under</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Sellos chicos y rarezas</div>
+          </button>
+          <button type="button" data-depth="4" class="depth-btn p-3 rounded-xl border border-hud-border bg-hud-card/60 hover:border-slate-600 text-left transition">
+            <div class="text-xs font-mono font-bold text-slate-200">4. Ultra-Under</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Ediciones ocultas y culto extremo</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTONES DE ACCIÓN -->
+      <div class="flex flex-wrap items-center gap-3 pt-1">
+        <button id="btnDiscover" type="button" class="flex-1 min-w-[240px] py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-display font-bold text-sm sm:text-base tracking-wide shadow-lg shadow-amber-500/25 transition flex items-center justify-center gap-2.5">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="2.5" /></svg>
+          <span>DESCUBRIR ÁLBUM RANDOM</span>
+        </button>
+        <button id="btnCancelSearch" type="button" class="hidden py-3.5 px-5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500 text-rose-300 font-semibold text-sm transition flex items-center gap-2">
+          <span>Cancelar búsqueda</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- PANEL DE CONTROLES: MODO ARTISTA / DISCOGRAFÍA -->
+    <section id="panelArtist" class="hud-panel rounded-2xl p-5 sm:p-6 space-y-4 hidden">
+      <div class="flex flex-col sm:flex-row gap-3 relative">
+        <div class="flex-1 relative">
+          <input id="artistSearchInput" type="text" autocomplete="off" placeholder="Escribí el nombre de un artista o banda (ej: Nas, Willie Colón, The Rolling Stones)..." class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-amber-500 focus:outline-none text-sm text-white placeholder-slate-500" />
+          <div id="artistAutocompleteDropdown" class="hidden absolute z-40 left-0 right-0 mt-1.5 bg-slate-950 border border-amber-500/40 rounded-xl shadow-2xl max-h-64 overflow-y-auto custom-scroll divide-y divide-slate-800/80"></div>
+        </div>
+        <button id="btnSearchArtist" type="button" class="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition">
+          Explorar Discografía
+        </button>
+        <button id="btnCancelArtistSearch" type="button" class="hidden px-5 py-3 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500 text-rose-300 font-semibold text-sm transition">
+          Cancelar búsqueda
+        </button>
+      </div>
+      <div id="discographyGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+    </section>
+
+    <!-- ESCENARIO PRINCIPAL -->
+    <section id="mainStage" class="hud-panel rounded-2xl p-6 sm:p-8 scroll-mt-6">
+      <!-- ESTADO 1: REPOSO -->
+      <div id="stageIdle" class="flex flex-col items-center justify-center text-center py-8 space-y-4">
+        <div class="w-28 h-28 rounded-full bg-slate-950 border-4 border-slate-800 flex items-center justify-center shadow-inner relative">
+          <div class="w-20 h-20 rounded-full border border-slate-800/90 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500/50 flex items-center justify-center">
+              <div class="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-1 max-w-md">
+          <h2 class="font-display text-xl font-bold text-white">Listo para cavar en la batea</h2>
+          <p class="text-sm text-slate-400">Escribí un género básico o específico (como <span class="text-amber-400 font-medium">Rap</span>, <span class="text-amber-400 font-medium">Rock</span> o <span class="text-amber-400 font-medium">Jazz</span>), tirá una banda de referencia o apretá en <span class="text-amber-400 font-medium">Descubrir Álbum Random</span>.</p>
+        </div>
+      </div>
+
+      <!-- ESTADO 2: CARGANDO -->
+      <div id="stageLoading" class="hidden flex flex-col items-center justify-center text-center py-10 space-y-4">
+        <div class="w-28 h-28 rounded-full bg-slate-950 border-4 border-amber-500/60 flex items-center justify-center vinyl-spin shadow-lg shadow-amber-500/20">
+          <div class="w-16 h-16 rounded-full border border-dashed border-amber-400/50 flex items-center justify-center">
+            <div class="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center">
+              <div class="w-2 h-2 rounded-full bg-slate-950"></div>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-1">
+          <p id="loadingStatusText" class="font-display text-lg font-bold text-amber-400">Revisando bateas y catálogos...</p>
+          <p class="text-xs font-mono text-slate-400">Verificando coincidencias de género, canciones, álbumes y enlaces directos</p>
+        </div>
+      </div>
+
+      <!-- ESTADO 3: CANCELADA -->
+      <div id="stageCancelled" class="hidden flex flex-col items-center justify-center text-center py-8 space-y-4">
+        <svg class="w-32 h-28" viewBox="0 0 140 120" fill="none">
+          <g transform="translate(-8, 4) rotate(-9 55 60)">
+            <path d="M62 12 A48 48 0 0 0 62 108 L57 86 L65 68 L55 50 L64 31 Z" fill="#0f172a" stroke="#f43f5e" stroke-width="2.2" />
+            <path d="M62 44 A16 16 0 0 0 62 76 L58 63 L64 53 Z" fill="#f43f5e" fill-opacity="0.25" />
+          </g>
+          <g transform="translate(10, -3) rotate(11 82 60)">
+            <path d="M74 12 A48 48 0 0 1 74 108 L69 86 L77 68 L67 50 L76 31 Z" fill="#0f172a" stroke="#f43f5e" stroke-width="2.2" />
+            <path d="M74 44 A16 16 0 0 1 74 76 L70 63 L76 53 Z" fill="#f43f5e" fill-opacity="0.25" />
+          </g>
+        </svg>
+        <div class="space-y-1">
+          <h3 class="font-display text-xl font-bold text-rose-400">Búsqueda cancelada</h3>
+          <p class="text-sm text-slate-400">Se detuvo la consulta al instante. Ajustá los filtros o lanzá una búsqueda nueva cuando quieras.</p>
+        </div>
+      </div>
+
+      <!-- ESTADO 4: ÁLBUM ENCONTRADO -->
+      <div id="stageResult" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <div class="lg:col-span-4 space-y-4">
+          <div class="aspect-square rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-2xl relative group">
+            <img id="resCover" src="" alt="Portada del álbum" class="w-full h-full object-cover" />
+          </div>
+
+          <div id="previewBox" class="hidden p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-mono text-amber-400">PREVIEW 30S</span>
+              <span id="previewTrackName" class="text-slate-300 truncate max-w-[180px]"></span>
+            </div>
+            <audio id="audioPlayer" controls class="w-full h-8"></audio>
+          </div>
+        </div>
+
+        <div class="lg:col-span-8 space-y-5">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="space-y-1.5">
+              <div class="flex flex-wrap items-center gap-2">
+                <span id="resYear" class="px-2.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-400 font-mono text-xs font-bold">2004</span>
+                <span id="resGenre" class="px-2.5 py-0.5 rounded bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono text-xs">Electropop</span>
+                <span id="resDepthTag" class="px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-xs">Culto</span>
+              </div>
+              <h2 id="resTitle" class="font-display text-2xl sm:text-3xl font-bold text-white leading-tight">Título del Álbum</h2>
+              <p id="resArtist" class="text-base sm:text-lg text-slate-300 font-medium">Artista</p>
+            </div>
+
+            <button id="btnToggleCollection" type="button" class="px-4 py-2.5 rounded-xl border font-semibold text-xs sm:text-sm transition flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200">
+              <span id="btnCollectionIcon">☆</span>
+              <span id="btnCollectionText">Guardar en Colección</span>
+            </button>
+          </div>
+
+          <div class="p-4 rounded-xl bg-hud-card/70 border border-hud-border space-y-1.5">
+            <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Nota de Curaduría &amp; Contexto</div>
+            <p id="resNotes" class="text-sm text-slate-200 leading-relaxed"></p>
+          </div>
+
+          <!-- LISTA DE CANCIONES DEL ÁLBUM -->
+          <div id="tracklistSection" class="p-4 rounded-xl bg-hud-card/70 border border-hud-border space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-mono uppercase tracking-wider text-amber-400">Lista de Canciones del Álbum</h3>
+              <span id="tracklistCount" class="text-[11px] font-mono text-slate-400"></span>
+            </div>
+            <div id="tracklistContainer" class="space-y-1.5 max-h-60 overflow-y-auto custom-scroll pr-1"></div>
+          </div>
+
+          <!-- ENLACES DIRECTOS AL ÁLBUM -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-mono uppercase tracking-wider text-emerald-400">Dónde escucharlo (Enlaces directos al álbum)</h3>
+              <span id="platformsCount" class="text-[11px] font-mono text-slate-400"></span>
+            </div>
+            <div id="directPlatformsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORIAL DE BÚSQUEDAS Y TU COLECCIÓN -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="hud-panel rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-display text-base font-bold text-white flex items-center gap-2">
+              <span>Historial de Búsquedas</span>
+              <span id="historyCount" class="px-2 py-0.5 rounded-full text-xs font-mono bg-slate-800 text-amber-400">0</span>
+            </h3>
+            <p class="text-xs text-slate-400">Se guarda automáticamente en cada búsqueda (clic para abrir)</p>
+          </div>
+        </div>
+        <div id="historyList" class="space-y-2 max-h-80 overflow-y-auto custom-scroll pr-1"></div>
+      </div>
+
+      <div class="hud-panel rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-display text-base font-bold text-white flex items-center gap-2">
+              <span>Tu Colección</span>
+              <span id="collectionCount" class="px-2 py-0.5 rounded-full text-xs font-mono bg-slate-800 text-cyan-400">0</span>
+            </h3>
+            <p class="text-xs text-slate-400">Solo los discos que guardás manualmente con el botón</p>
+          </div>
+        </div>
+        <div id="collectionList" class="space-y-2 max-h-80 overflow-y-auto custom-scroll pr-1"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const WORLD_GENRES = [
+      // Géneros básicos directos
+      { name: 'Rap', region: 'Global', family: 'Básicos', queries: ['rap album', 'rap classic', 'hip hop rap', 'nas eminem jay z'], artists: ['Nas', 'Eminem', 'Jay-Z', 'Kendrick Lamar', '2Pac', 'Mac Miller', 'Freddie Gibbs'] },
+      { name: 'Hip Hop', region: 'Global', family: 'Básicos', queries: ['hip hop album', 'hip hop classic', 'boom bap hip hop', 'a tribe called quest'], artists: ['Nas', 'A Tribe Called Quest', 'MF DOOM', 'J Dilla', 'Mac Miller', 'Freddie Gibbs'] },
+      { name: 'Rock', region: 'Global', family: 'Básicos', queries: ['rock album', 'classic rock', 'rock en espanol', 'the rolling stones'], artists: ['The Rolling Stones', 'The Beatles', 'Led Zeppelin', 'Charly García', 'Luis Alberto Spinetta'] },
+      { name: 'Pop', region: 'Global', family: 'Básicos', queries: ['pop album', 'pop classics', 'billboard pop', 'synthpop'], artists: ['Michael Jackson', 'Madonna', 'Björk', 'Dua Lipa', 'Mariya Takeuchi'] },
+      { name: 'Jazz', region: 'Global', family: 'Básicos', queries: ['jazz album', 'classic jazz', 'miles davis', 'john coltrane'], artists: ['Miles Davis', 'John Coltrane', 'Herbie Hancock', 'Bill Evans', 'Charles Mingus'] },
+      { name: 'Funk', region: 'Global', family: 'Básicos', queries: ['funk album', 'classic funk', 'james brown', 'parliament funkadelic'], artists: ['James Brown', 'Parliament', 'Funkadelic', 'Sly & The Family Stone', 'Prince'] },
+      { name: 'Soul', region: 'Global', family: 'Básicos', queries: ['soul album', 'classic soul', 'otis redding', 'aretha franklin'], artists: ['Otis Redding', 'Aretha Franklin', 'Marvin Gaye', 'Al Green', 'Stevie Wonder'] },
+      { name: 'Blues', region: 'Global', family: 'Básicos', queries: ['blues album', 'chicago blues', 'delta blues', 'muddy waters'], artists: ['Muddy Waters', 'Howlin’ Wolf', 'B.B. King', 'Robert Johnson', 'Stevie Ray Vaughan'] },
+      { name: 'Reggae', region: 'Jamaica / Global', family: 'Básicos', queries: ['reggae album', 'roots reggae', 'bob marley', 'toots and the maytals'], artists: ['Bob Marley', 'Toots and the Maytals', 'Lee "Scratch" Perry', 'Peter Tosh'] },
+      { name: 'Electrónica', region: 'Global', family: 'Básicos', queries: ['electronic album', 'electronica', 'daft punk', 'aphex twin'], artists: ['Daft Punk', 'Aphex Twin', 'Boards of Canada', 'The Chemical Brothers', 'Brian Eno'] },
+      { name: 'Metal', region: 'Global', family: 'Básicos', queries: ['metal album', 'heavy metal', 'black sabbath', 'metallica'], artists: ['Black Sabbath', 'Metallica', 'Iron Maiden', 'Judas Priest', 'Slayer'] },
+      { name: 'Punk', region: 'Global', family: 'Básicos', queries: ['punk album', 'punk rock', 'ramones', 'the clash'], artists: ['Ramones', 'The Clash', 'Sex Pistols', 'Buzzcocks', 'Minor Threat'] },
+      { name: 'Folk', region: 'Global', family: 'Básicos', queries: ['folk album', 'bob dylan', 'nick drake', 'joni mitchell'], artists: ['Bob Dylan', 'Nick Drake', 'Joni Mitchell', 'Townes Van Zandt'] },
+      { name: 'Country', region: 'EE.UU. / Global', family: 'Básicos', queries: ['country album', 'classic country', 'johnny cash', 'willie nelson'], artists: ['Johnny Cash', 'Willie Nelson', 'Dolly Parton', 'Hank Williams'] },
+      { name: 'Clásica', region: 'Global', family: 'Básicos', queries: ['classical symphony orchestra', 'beethoven', 'mozart', 'debussy'], artists: ['Ludwig van Beethoven', 'Wolfgang Amadeus Mozart', 'Claude Debussy', 'Igor Stravinsky'] },
+
+      // Estilos regionales y subgéneros
+      { name: 'Tango', region: 'Argentina / Uruguay', family: 'Río de la Plata', queries: ['tango argentino', 'astor piazzolla', 'carlos gardel', 'anibal troilo'], artists: ['Astor Piazzolla', 'Carlos Gardel', 'Aníbal Troilo', 'Julio Sosa'] },
+      { name: 'Tango Electrónico', region: 'Argentina / Río de la Plata', family: 'Río de la Plata', queries: ['gotan project', 'bajo fondo tango club', 'tango electronico'], artists: ['Gotan Project', 'Bajofondo', 'Otros Aires'] },
+      { name: 'Milonga', region: 'Argentina / Uruguay', family: 'Río de la Plata', queries: ['milonga rioplatense', 'alfredo zitarrosa', 'edmundo rivero'], artists: ['Alfredo Zitarrosa', 'Edmundo Rivero', 'Astor Piazzolla'] },
+      { name: 'Candombe', region: 'Uruguay / Río de la Plata', family: 'Río de la Plata', queries: ['candombe uruguayo', 'ruben rada candombe', 'jaime roos candombe', 'mateo candombe'], artists: ['Ruben Rada', 'Jaime Roos', 'Eduardo Mateo', 'Fernando Cabrera'] },
+      { name: 'Plena Uruguaya', region: 'Uruguay', family: 'Río de la Plata', queries: ['plena uruguaya', 'plena baile uruguay', 'sonora borinquen plena', 'la autentica plena'], artists: ['Sonora Borinquen', 'Karibe con K', 'Lucas Sugo', 'Chacho Ramos'] },
+      { name: 'Murga Uruguaya', region: 'Uruguay', family: 'Río de la Plata', queries: ['murga uruguaya', 'falta y resto', 'agarrate catalina', 'murga montevideo'], artists: ['Agarrate Catalina', 'Falta y Resto', 'No Te Va Gustar'] },
+      { name: 'Cuarteto', region: 'Córdoba / Argentina', family: 'Ritmos Argentinos', queries: ['cuarteto cordobes', 'rodrigo cuarteto', 'la mona jimenez', 'ulises bueno'], artists: ['Rodrigo', 'La Mona Jiménez', 'Ulises Bueno', 'Walter Olmos'] },
+      { name: 'Chamamé', region: 'Litoral / Argentina', family: 'Folklore Sudamericano', queries: ['chamame correntino', 'teresa parodi chamame', 'chango spasiuk'], artists: ['Teresa Parodi', 'Chango Spasiuk', 'Ramona Galarza'] },
+      { name: 'Chacarera', region: 'Santiago del Estero / Argentina', family: 'Folklore Sudamericano', queries: ['chacarera santiaguena', 'peteco carabajal', 'los manseros santiaguenos'], artists: ['Peteco Carabajal', 'Los Manseros Santiagueños', 'Mercedes Sosa'] },
+      { name: 'Zamba', region: 'Argentina', family: 'Folklore Sudamericano', queries: ['zamba folklore argentino', 'gustavo leguizamon zamba', 'mercedes sosa zamba'], artists: ['Mercedes Sosa', 'Atahualpa Yupanqui', 'Gustavo Leguizamón'] },
+      { name: 'Rock Nacional', region: 'Argentina', family: 'Rock en Español', queries: ['rock nacional argentino', 'charly garcia', 'luis alberto spinetta', 'soda stereo'], artists: ['Charly García', 'Luis Alberto Spinetta', 'Soda Stereo', 'Patricio Rey y sus Redonditos de Ricota'] },
+      { name: 'Cueca / Tonada Chilena', region: 'Chile', family: 'Folklore Andino y Cono Sur', queries: ['cueca chilena', 'violeta parra', 'inti illimani', 'quilapayun'], artists: ['Violeta Parra', 'Inti-Illimani', 'Quilapayún', 'Los Jaivas'] },
+      { name: 'Música Andina / Huayno', region: 'Perú / Bolivia / Andes', family: 'Folklore Andino', queries: ['huayno andino', 'musica andina peru bolivia', 'los kjarkas'], artists: ['Los Kjarkas', 'Illapu', 'Yma Sumac'] },
+      { name: 'Cumbia Villera', region: 'Argentina', family: 'Cumbia', queries: ['cumbia villera', 'damas gratis', 'pibes chorros', 'flor de piedra'], artists: ['Damas Gratis', 'Pibes Chorros', 'Flor de Piedra', 'Yerba Brava'] },
+      { name: 'Cumbia Santafesina', region: 'Santa Fe / Argentina', family: 'Cumbia', queries: ['cumbia santafesina', 'los palmeras', 'leo mattioli'], artists: ['Los Palmeras', 'Leo Mattioli', 'Cali'] },
+      { name: 'Salsa', region: 'Caribe / Latinoamérica', family: 'Ritmos Latinos', queries: ['salsa dura', 'hector lavoe', 'ruben blades', 'fania all stars', 'willie colon'], artists: ['Héctor Lavoe', 'Rubén Blades', 'Willie Colón', 'Celia Cruz'] },
+      { name: 'Salsa Romántica', region: 'Caribe / Latinoamérica', family: 'Ritmos Latinos', queries: ['salsa romantica', 'frankie ruiz', 'eddie santiago', 'gilberto santa rosa'], artists: ['Frankie Ruiz', 'Eddie Santiago', 'Gilberto Santa Rosa'] },
+      { name: 'Salsa Brava', region: 'Caribe / Nueva York', family: 'Ritmos Latinos', queries: ['salsa brava', 'ray barretto', 'eddie palmieri', 'richie ray', 'willie colon'], artists: ['Ray Barretto', 'Eddie Palmieri', 'Richie Ray & Bobby Cruz', 'Willie Colón'] },
+      { name: 'Cumbia', region: 'Colombia / Latinoamérica', family: 'Cumbia', queries: ['cumbia colombiana', 'cumbia clasica', 'anibal velasquez', 'la sonora dinamita'], artists: ['Aníbal Velásquez', 'La Sonora Dinamita', 'Los Ángeles Azules'] },
+      { name: 'Cumbia Rebajada', region: 'México', family: 'Cumbia', queries: ['cumbia rebajada', 'sonido gallo negro', 'celso pina'], artists: ['Celso Piña', 'Sonido Gallo Negro', 'Los Mirlos'] },
+      { name: 'Cumbia Peruana / Chicha', region: 'Perú', family: 'Cumbia', queries: ['chicha peruana', 'los mirlos', 'juaneco y su combo'], artists: ['Los Mirlos', 'Juaneco y su Combo', 'Bareto'] },
+      { name: 'Cumbia Sonidera', region: 'México', family: 'Cumbia', queries: ['cumbia sonidera', 'sonido la changa', 'los askis'], artists: ['Sonido La Changa', 'Los Askis', 'Super Lamas'] },
+      { name: 'Cumbia Sureña / Andina', region: 'Perú / Bolivia / Argentina', family: 'Cumbia', queries: ['cumbia surena', 'grupo nectar', 'agua marina'], artists: ['Grupo Néctar', 'Agua Marina', 'Armonía 10'] },
+      { name: 'Cumbia Digital / Nu-Cumbia', region: 'Argentina / Colombia / Global', family: 'Cumbia', queries: ['nu cumbia digital', 'chancha via circuito', 'frikstailers', 'bomba estereo'], artists: ['Chancha Vía Circuito', 'Bomba Estéreo', 'Frikstailers'] },
+      { name: 'Vallenato', region: 'Colombia', family: 'Folklore Colombiano', queries: ['vallenato clasico', 'rafael orozco', 'jorge onate'], artists: ['Rafael Orozco', 'Jorge Oñate', 'Diomedes Díaz'] },
+      { name: 'Champeta', region: 'Colombia / Caribe', family: 'Ritmos Caribeños', queries: ['champeta colombiana', 'mr black champeta', 'kevin florez'], artists: ['Mr. Black', 'Kevin Flórez', 'Systema Solar'] },
+      { name: 'Merengue', region: 'República Dominicana', family: 'Ritmos Caribeños', queries: ['merengue dominicano', 'juan luis guerra', 'wilfrido vargas'], artists: ['Juan Luis Guerra', 'Wilfrido Vargas', 'Eddy Herrera'] },
+      { name: 'Bachata', region: 'República Dominicana', family: 'Ritmos Caribeños', queries: ['bachata clasica', 'anthony santos', 'aventura bachata'], artists: ['Anthony Santos', 'Aventura', 'Romeo Santos'] },
+      { name: 'Bachata Moderna', region: 'República Dominicana / Global', family: 'Ritmos Caribeños', queries: ['bachata moderna', 'romeo santos', 'prince royce'], artists: ['Romeo Santos', 'Prince Royce', 'Aventura'] },
+      { name: 'Dembow', region: 'República Dominicana', family: 'Urbano Latino', queries: ['dembow dominicano', 'el alfa dembow', 'rochy rd'], artists: ['El Alfa', 'Rochy RD', 'Tokischa'] },
+      { name: 'Reggaetón', region: 'Puerto Rico / Caribe', family: 'Urbano Latino', queries: ['reggaeton clasico', 'tego calderon', 'daddy yankee', 'don omar'], artists: ['Tego Calderón', 'Daddy Yankee', 'Don Omar', 'Wisin & Yandel'] },
+      { name: 'Trap Latino', region: 'Latinoamérica / Caribe', family: 'Urbano Latino', queries: ['trap latino', 'bad bunny trap', 'anuel aa', 'darell'], artists: ['Bad Bunny', 'Anuel AA', 'Eladio Carrión', 'Duki'] },
+      { name: 'Urbano', region: 'Latinoamérica / Caribe', family: 'Urbano Latino', queries: ['urbano latino', 'j balvin', 'karol g', 'feid'], artists: ['J Balvin', 'Feid', 'Karol G', 'Rauw Alejandro'] },
+      { name: 'Bomba y Plena', region: 'Puerto Rico', family: 'Caribe Afrodescendiente', queries: ['bomba y plena puerto rico', 'rafael cortijo', 'ismael rivera'], artists: ['Rafael Cortijo', 'Ismael Rivera', 'Plena Libre'] },
+      { name: 'Son Cubano', region: 'Cuba', family: 'Caribe Afrodescendiente', queries: ['son cubano', 'buena vista social club', 'compay segundo'], artists: ['Compay Segundo', 'Buena Vista Social Club', 'Benny Moré'] },
+      { name: 'Guaracha / Mambo', region: 'Cuba', family: 'Caribe Afrodescendiente', queries: ['perez prado mambo', 'celia cruz guaracha', 'sonora matancera'], artists: ['Pérez Prado', 'Celia Cruz', 'Benny Moré'] },
+      { name: 'Timba', region: 'Cuba', family: 'Caribe Afrodescendiente', queries: ['timba cubana', 'los van van', 'ng la banda'], artists: ['Los Van Van', 'NG La Banda', 'Charanga Habanera'] },
+      { name: 'Bolero', region: 'Cuba / Latinoamérica', family: 'Canción Latina', queries: ['bolero clasico', 'lucho gatica', 'trio los panchos', 'olga guillot'], artists: ['Lucho Gatica', 'Trío Los Panchos', 'Olga Guillot'] },
+      { name: 'Mariachi', region: 'México', family: 'Regional Mexicano', queries: ['mariachi mexicano', 'vicente fernandez', 'antonio aguilar'], artists: ['Vicente Fernández', 'Antonio Aguilar', 'Alejandro Fernández'] },
+      { name: 'Ranchera', region: 'México', family: 'Regional Mexicano', queries: ['ranchera mexicana', 'jose alfredo jimenez', 'chavela vargas', 'rocio durcal'], artists: ['José Alfredo Jiménez', 'Chavela Vargas', 'Rocío Dúrcal'] },
+      { name: 'Corridos / Corridos Tumbados', region: 'México', family: 'Regional Mexicano', queries: ['corridos tumbados', 'chalino sanchez', 'peso pluma', 'natanael cano'], artists: ['Chalino Sánchez', 'Peso Pluma', 'Natanael Cano'] },
+      { name: 'Norteño / Banda Sinaloense', region: 'México', family: 'Regional Mexicano', queries: ['musica nortena', 'banda sinaloense', 'los tigres del norte', 'ramon ayala'], artists: ['Los Tigres del Norte', 'Ramón Ayala', 'Banda El Recodo'] },
+      { name: 'Grupero / Cumbia Mexicana', region: 'México', family: 'Regional Mexicano', queries: ['grupero cumbia mexicana', 'los angeles negros', 'bronco', 'grupo frontera'], artists: ['Los Ángeles Negros', 'Bronco', 'Los Bukis', 'Grupo Frontera'] },
+      { name: 'Joropo', region: 'Venezuela / Colombia', family: 'Folklore Llanero', queries: ['joropo llanero', 'simon diaz', 'reyna lucero'], artists: ['Simón Díaz', 'Reyna Lucero'] },
+      { name: 'Samba', region: 'Brasil', family: 'Música Brasileña', queries: ['samba brasileiro', 'cartola samba', 'beth carvalho', 'martinho da vila'], artists: ['Cartola', 'Beth Carvalho', 'Martinho da Vila', 'Zeca Pagodinho'] },
+      { name: 'Samba de Raiz', region: 'Brasil', family: 'Música Brasileña', queries: ['samba de raiz', 'dona ivone lara', 'nelson cavaoquinho', 'bezerra da silva'], artists: ['Dona Ivone Lara', 'Nelson Cavaquinho', 'Bezerra da Silva'] },
+      { name: 'Pagode', region: 'Brasil', family: 'Música Brasileña', queries: ['pagode brasileiro', 'fundo de quintal', 'zeca pagodinho', 'exaltasamba'], artists: ['Fundo de Quintal', 'Zeca Pagodinho', 'Revelação'] },
+      { name: 'Bossa Nova', region: 'Brasil', family: 'Música Brasileña', queries: ['bossa nova', 'joao gilberto', 'tom jobim', 'stan getz joao gilberto'], artists: ['João Gilberto', 'Antônio Carlos Jobim', 'Stan Getz', 'Astrud Gilberto'] },
+      { name: 'MPB (Música Popular Brasileira)', region: 'Brasil', family: 'Música Brasileña', queries: ['mpb brasil', 'milton nascimento', 'elis regina', 'chico buarque'], artists: ['Milton Nascimento', 'Elis Regina', 'Chico Buarque', 'Djavan'] },
+      { name: 'Tropicalia', region: 'Brasil', family: 'Música Brasileña', queries: ['tropicalia brasil', 'os mutantes', 'caetano veloso', 'gilberto gil'], artists: ['Os Mutantes', 'Caetano Veloso', 'Gilberto Gil', 'Gal Costa'] },
+      { name: 'Choro', region: 'Brasil', family: 'Música Brasileña', queries: ['choro brasileiro', 'pixinguinha', 'jacob do bandolim', 'hamilton de holanda'], artists: ['Pixinguinha', 'Jacob do Bandolim', 'Hamilton de Holanda'] },
+      { name: 'Maracatu', region: 'Pernambuco / Brasil', family: 'Música Brasileña', queries: ['maracatu pernambuco', 'chico science nacao zumbi', 'mestre ambrosio'], artists: ['Chico Science & Nação Zumbi', 'Mestre Ambrósio', 'Naná Vasconcelos'] },
+      { name: 'Frevo', region: 'Recife / Brasil', family: 'Música Brasileña', queries: ['frevo pernambuco', 'spokfrevo', 'antonio nobrega'], artists: ['SpokFrevo Orquestra', 'Antônio Nóbrega', 'Claudionor Germano'] },
+      { name: 'Forró / Baião', region: 'Nordeste de Brasil', family: 'Música Brasileña', queries: ['luiz gonzaga baiao forro', 'dominguinhos', 'alceu valenca'], artists: ['Luiz Gonzaga', 'Dominguinhos', 'Alceu Valença'] },
+      { name: 'Axé / Samba-Reggae', region: 'Bahía / Brasil', family: 'Música Brasileña', queries: ['axe bahia', 'timbalada', 'carlinhos brown', 'olodum'], artists: ['Timbalada', 'Carlinhos Brown', 'Olodum', 'Ivete Sangalo'] },
+      { name: 'Funk Carioca / Baile Funk', region: 'Río de Janeiro / Brasil', family: 'Urbano Brasileño', queries: ['funk carioca', 'baile funk', 'mc catra', 'anitta funk'], artists: ['MC Catra', 'MC Kevin o Chris', 'Anitta'] },
+      { name: 'Disco', region: 'EE.UU. / Global', family: 'Disco & Dance', queries: ['disco music classic', 'bee gees disco', 'donna summer', 'chic le freak'], artists: ['Donna Summer', 'Chic', 'Bee Gees', 'Gloria Gaynor'] },
+      { name: 'Nu-Disco', region: 'Global', family: 'Disco & Dance', queries: ['nu disco', 'todd terje', 'lindstrom', 'purple disco machine'], artists: ['Todd Terje', 'Lindstrøm', 'Purple Disco Machine'] },
+      { name: 'Italo Disco', region: 'Italia', family: 'Disco & Dance', queries: ['italo disco', 'giorgio moroder', 'alexander robotnick', 'baltimora'], artists: ['Giorgio Moroder', 'Alexander Robotnick', 'Baltimora'] },
+      { name: 'P-Funk', region: 'EE.UU.', family: 'Funk & Soul', queries: ['p funk george clinton', 'parliament funkadelic', 'bootsy collins'], artists: ['George Clinton', 'Parliament', 'Funkadelic', 'Bootsy Collins'] },
+      { name: 'Motown', region: 'Detroit / EE.UU.', family: 'Funk & Soul', queries: ['motown classics', 'stevie wonder', 'the supremes', 'the temptations'], artists: ['Stevie Wonder', 'The Temptations', 'The Supremes', 'Marvin Gaye'] },
+      { name: 'Neo-Soul', region: 'EE.UU. / Global', family: 'Funk & Soul', queries: ['neo soul', 'erykah badu', 'd angelo voodoo', 'lauryn hill'], artists: ['Erykah Badu', 'D’Angelo', 'Lauryn Hill', 'Frank Ocean'] },
+      { name: 'R&B Contemporáneo', region: 'EE.UU. / Global', family: 'Funk & Soul', queries: ['r&b album', 'sza', 'usher', 'alicia keys'], artists: ['SZA', 'Alicia Keys', 'Usher', 'Miguel'] },
+      { name: 'Bebop / Hard Bop', region: 'EE.UU.', family: 'Jazz', queries: ['hard bop bebop jazz', 'charlie parker', 'art blakey', 'lee morgan'], artists: ['Art Blakey', 'Charlie Parker', 'Lee Morgan', 'Thelonious Monk'] },
+      { name: 'Modal Jazz / Spiritual Jazz', region: 'EE.UU. / Global', family: 'Jazz', queries: ['spiritual jazz modal jazz', 'john coltrane', 'pharoah sanders', 'alice coltrane'], artists: ['John Coltrane', 'Pharoah Sanders', 'Alice Coltrane', 'Miles Davis'] },
+      { name: 'Jazz Fusion', region: 'Global', family: 'Jazz', queries: ['jazz fusion', 'herbie hancock head hunters', 'weather report', 'chick corea'], artists: ['Herbie Hancock', 'Weather Report', 'Chick Corea', 'Return to Forever'] },
+      { name: 'Acid Jazz / Nu-Jazz', region: 'Reino Unido / Global', family: 'Jazz', queries: ['acid jazz nu jazz', 'jamiroquai', 'us3', 'medeski martin and wood'], artists: ['Jamiroquai', 'Us3', 'Medeski Martin & Wood', 'BadBadNotGood'] },
+      { name: 'Latin Jazz / Afro-Cuban Jazz', region: 'Cuba / EE.UU. / Latinoamérica', family: 'Jazz', queries: ['latin jazz afro cuban jazz', 'chucho valdes', 'mongo santamaria', 'cal tjader'], artists: ['Chucho Valdés', 'Mongo Santamaría', 'Cal Tjader', 'Tito Puente'] },
+      { name: 'Americana / Outlaw Country', region: 'EE.UU.', family: 'Country & Americana', queries: ['americana outlaw country', 'sturgill simpson', 'townes van zandt', 'jason isbell'], artists: ['Townes Van Zandt', 'Sturgill Simpson', 'Jason Isbell', 'Lucinda Williams'] },
+      { name: 'Folk / Bluegrass', region: 'EE.UU. / Global', family: 'Folk & Acústico', queries: ['bluegrass folk', 'bill monroe', 'bob dylan', 'nick drake'], artists: ['Bob Dylan', 'Nick Drake', 'Bill Monroe', 'Joni Mitchell'] },
+      { name: 'Celtic Folk', region: 'Irlanda / Escocia', family: 'Folk & Acústico', queries: ['celtic folk irish music', 'the dubliners', 'planxty', 'altan'], artists: ['The Dubliners', 'Planxty', 'Loreena McKennitt'] },
+      { name: 'Boom Bap', region: 'EE.UU.', family: 'Hip Hop', queries: ['boom bap hip hop', 'nas illmatic', 'j dilla', 'mobb deep'], artists: ['Nas', 'J Dilla', 'Mobb Deep', 'Pete Rock'] },
+      { name: 'Jazz Rap', region: 'EE.UU. / Global', family: 'Hip Hop', queries: ['jazz rap', 'a tribe called quest', 'guru jazzmatazz', 'madlib'], artists: ['A Tribe Called Quest', 'Guru', 'Madlib', 'Mac Miller'] },
+      { name: 'Gangsta Rap / West Coast', region: 'Costa Oeste / EE.UU.', family: 'Hip Hop', queries: ['west coast hip hop', 'dr dre chronic', '2pac', 'snoop dogg'], artists: ['Dr. Dre', '2Pac', 'Snoop Dogg', 'Kendrick Lamar'] },
+      { name: 'G-Funk', region: 'Costa Oeste / EE.UU.', family: 'Hip Hop', queries: ['g funk west coast', 'warren g', 'dj quik', 'dr dre'], artists: ['Warren G', 'DJ Quik', 'Dr. Dre', 'Snoop Dogg'] },
+      { name: 'Trap', region: 'EE.UU. / Global', family: 'Hip Hop', queries: ['trap hip hop', 'future trap', 'travis scott', '21 savage'], artists: ['Future', 'Travis Scott', '21 Savage', 'Metro Boomin'] },
+      { name: 'Drill', region: 'Reino Unido / EE.UU.', family: 'Hip Hop', queries: ['uk drill', 'chicago drill', 'pop smoke', 'central cee'], artists: ['Pop Smoke', 'Central Cee', 'Chief Keef'] },
+      { name: 'Grime', region: 'Reino Unido', family: 'Hip Hop', queries: ['grime uk', 'skepta', 'wiley grime', 'kano grime'], artists: ['Skepta', 'Wiley', 'Dizzee Rascal', 'Kano'] },
+      { name: 'Techno', region: 'Detroit / Berlín / Global', family: 'Techno', queries: ['detroit techno', 'berlin techno', 'jeff mills', 'richie hawtin'], artists: ['Jeff Mills', 'Richie Hawtin', 'Juan Atkins', 'Derrick May'] },
+      { name: 'Hard Techno', region: 'Europa / Global', family: 'Techno', queries: ['hard techno', 'sara landry', 'nico moreno', 'i hate models'], artists: ['Sara Landry', 'Nico Moreno', 'I Hate Models', 'Anetha'] },
+      { name: 'Minimal Techno', region: 'Alemania / Global', family: 'Techno', queries: ['minimal techno', 'ricardo villalobos', 'robert hood', 'boris brejcha'], artists: ['Ricardo Villalobos', 'Robert Hood', 'Boris Brejcha', 'Magda'] },
+      { name: 'Melodic Techno', region: 'Europa / Global', family: 'Techno', queries: ['melodic techno', 'tale of us', 'stephan bodzin', 'anyma'], artists: ['Tale Of Us', 'Stephan Bodzin', 'Maceo Plex', 'Solomun'] },
+      { name: 'Acid Techno / Acid House', region: 'Reino Unido / Global', family: 'Techno', queries: ['acid house techno', 'phuture acid tracks', 'dj pierre', 'hardfloor'], artists: ['Phuture', 'DJ Pierre', 'Hardfloor', 'Chris Liberator'] },
+      { name: 'Dub Techno', region: 'Berlín / Global', family: 'Techno', queries: ['dub techno', 'basic channel', 'rhythm and sound', 'deepchord'], artists: ['Basic Channel', 'Rhythm & Sound', 'Deepchord', 'Pole'] },
+      { name: 'Industrial Techno / EBM', region: 'Europa', family: 'Techno', queries: ['industrial techno ebm', 'front 242', 'daf', 'ancient methods'], artists: ['Front 242', 'DAF', 'Ancient Methods', 'Gesaffelstein'] },
+      { name: 'Schranz / Hardcore Techno', region: 'Alemania / Países Bajos', family: 'Techno', queries: ['schranz hardcore techno', 'angerfist', 'chris liebing schranz'], artists: ['Angerfist', 'Chris Liebing', 'Ophidian', 'Partyraiser'] },
+      { name: 'House', region: 'Chicago / Global', family: 'House', queries: ['chicago house', 'frankie knuckles', 'larry heard', 'honey dijon'], artists: ['Frankie Knuckles', 'Larry Heard', 'Kerri Chandler', 'Honey Dijon'] },
+      { name: 'Deep House', region: 'Global', family: 'House', queries: ['deep house', 'larry heard mr fingers', 'moodymann', 'theo parrish'], artists: ['Larry Heard', 'Moodymann', 'Theo Parrish', 'MK'] },
+      { name: 'Tech House', region: 'Global', family: 'House', queries: ['tech house', 'fisher tech house', 'chris lake', 'jamie jones'], artists: ['Fisher', 'Chris Lake', 'Jamie Jones', 'Hot Since 82'] },
+      { name: 'Progressive House', region: 'Global', family: 'House', queries: ['progressive house', 'sasha digweed', 'eric prydz', 'hernan cattaneo'], artists: ['Sasha', 'John Digweed', 'Eric Prydz', 'Hernán Cattáneo'] },
+      { name: 'French Touch / House Francés', region: 'Francia', family: 'House', queries: ['french touch daft punk', 'cassius justice french house'], artists: ['Daft Punk', 'Justice', 'Cassius', 'Air'] },
+      { name: 'Drum and Bass', region: 'Reino Unido / Global', family: 'Bass & Breakbeat', queries: ['drum and bass', 'goldie', 'ltj bukem', 'roni size'], artists: ['Goldie', 'LTJ Bukem', 'Roni Size', 'Pendulum'] },
+      { name: 'Jungle', region: 'Reino Unido', family: 'Bass & Breakbeat', queries: ['jungle music uk', 'shy fx', 'general levy', 'dj hype'], artists: ['Shy FX', 'General Levy', 'Congo Natty'] },
+      { name: 'UK Garage / 2-Step', region: 'Reino Unido', family: 'Bass & Breakbeat', queries: ['uk garage 2 step', 'artful dodger', 'mj cole', 'burial'], artists: ['Artful Dodger', 'MJ Cole', 'Burial', 'Disclosure'] },
+      { name: 'Dubstep', region: 'Reino Unido / Global', family: 'Bass & Breakbeat', queries: ['dubstep', 'skream', 'benga', 'mala dubstep'], artists: ['Skream', 'Benga', 'Mala', 'Skrillex'] },
+      { name: 'Breakbeat / Big Beat', region: 'Reino Unido / Global', family: 'Bass & Breakbeat', queries: ['big beat breakbeat', 'the prodigy', 'the chemical brothers', 'fatboy slim'], artists: ['The Prodigy', 'The Chemical Brothers', 'Fatboy Slim', 'The Crystal Method'] },
+      { name: 'Trance', region: 'Europa / Global', family: 'Trance & Melódica', queries: ['trance music', 'armin van buuren', 'paul van dyk', 'tiesto trance'], artists: ['Armin van Buuren', 'Paul van Dyk', 'Tiësto', 'Above & Beyond'] },
+      { name: 'Synthpop', region: 'Europa / EE.UU.', family: 'Synth & Wave', queries: ['synthpop', 'depeche mode', 'new order', 'chvrches'], artists: ['Depeche Mode', 'New Order', 'CHVRCHES', 'Chico y Chica'] },
+      { name: 'Synthwave / Retrowave', region: 'Global', family: 'Synth & Wave', queries: ['synthwave', 'kavinsky', 'fm 84', 'm83'], artists: ['Kavinsky', 'FM-84', 'M83', 'Carpenter Brut'] },
+      { name: 'New Wave', region: 'Reino Unido / EE.UU.', family: 'Synth & Wave', queries: ['new wave 80s', 'talking heads', 'blondie', 'the police'], artists: ['Talking Heads', 'Blondie', 'The Police', 'Elvis Costello'] },
+      { name: 'Vaporwave / Chillwave', region: 'Global', family: 'Synth & Wave', queries: ['vaporwave chillwave', 'macintosh plus', 'washed out', 'toro y moi'], artists: ['Toro y Moi', 'Washed Out', 'Macintosh Plus', 'George Clanton'] },
+      { name: 'IDM (Intelligent Dance Music)', region: 'Global', family: 'Experimental & Ambient', queries: ['idm electronic', 'aphex twin', 'autechre', 'boards of canada'], artists: ['Aphex Twin', 'Autechre', 'Boards of Canada', 'Squarepusher'] },
+      { name: 'Downtempo / Trip-Hop', region: 'Reino Unido / Global', family: 'Experimental & Ambient', queries: ['trip hop downtempo', 'massive attack', 'portishead', 'tricky'], artists: ['Massive Attack', 'Portishead', 'Tricky', 'Morcheeba'] },
+      { name: 'Ambient', region: 'Global', family: 'Experimental & Ambient', queries: ['ambient music', 'brian eno ambient', 'aphex twin ambient', 'stars of the lid'], artists: ['Brian Eno', 'Aphex Twin', 'Stars of the Lid', 'William Basinski'] },
+      { name: 'Art Pop', region: 'Global', family: 'Pop', queries: ['art pop', 'bjork', 'kate bush', 'fka twigs'], artists: ['Björk', 'Kate Bush', 'FKA twigs', 'St. Vincent'] },
+      { name: 'Indie Pop', region: 'Global', family: 'Indie & Alternativo', queries: ['indie pop', 'phoenix', 'mgmt', 'clairo'], artists: ['Phoenix', 'MGMT', 'Clairo', 'Vampire Weekend'] },
+      { name: 'Dream Pop', region: 'Global', family: 'Indie & Alternativo', queries: ['dream pop', 'beach house', 'cocteau twins', 'mazzy star'], artists: ['Beach House', 'Cocteau Twins', 'Mazzy Star', 'Cigarettes After Sex'] },
+      { name: 'Indie Rock', region: 'Global', family: 'Indie & Alternativo', queries: ['indie rock', 'arctic monkeys', 'the strokes', 'interpol'], artists: ['Arctic Monkeys', 'The Strokes', 'Interpol', 'Modest Mouse'] },
+      { name: 'Garage Rock', region: 'EE.UU. / Reino Unido', family: 'Rock', queries: ['garage rock', 'the white stripes', 'the hives', 'ty segall'], artists: ['The White Stripes', 'Ty Segall', 'The Hives', 'Oh Sees'] },
+      { name: 'Hard Rock', region: 'Global', family: 'Rock', queries: ['hard rock classics', 'ac dc', 'led zeppelin', 'deep purple'], artists: ['Led Zeppelin', 'AC/DC', 'Deep Purple', 'Guns N’ Roses'] },
+      { name: 'Blues Rock', region: 'EE.UU. / Reino Unido', family: 'Blues & Rock', queries: ['blues rock', 'cream', 'stevie ray vaughan', 'allman brothers'], artists: ['Stevie Ray Vaughan', 'Cream', 'The Allman Brothers Band', 'Rory Gallagher'] },
+      { name: 'Funk Rock', region: 'EE.UU.', family: 'Funk & Rock', queries: ['funk rock', 'red hot chili peppers', 'prince', 'living colour'], artists: ['Prince', 'Red Hot Chili Peppers', 'Living Colour', 'Infectious Grooves'] },
+      { name: 'Progressive Rock', region: 'Europa / Global', family: 'Rock', queries: ['progressive rock', 'yes close to the edge', 'king crimson', 'genesis'], artists: ['King Crimson', 'Yes', 'Genesis', 'Rush'] },
+      { name: 'Psychedelic Rock', region: 'Global', family: 'Rock', queries: ['psychedelic rock', 'tame impala', 'pink floyd', 'os mutantes'], artists: ['Tame Impala', 'Pink Floyd', 'Os Mutantes', 'The Rolling Stones'] },
+      { name: 'Krautrock', region: 'Alemania', family: 'Rock', queries: ['krautrock', 'can album', 'neu!', 'kraftwerk'], artists: ['Can', 'Neu!', 'Kraftwerk', 'Harmonia'] },
+      { name: 'Britpop', region: 'Reino Unido', family: 'Rock Británico', queries: ['britpop', 'oasis blur pulp suede'], artists: ['Oasis', 'Blur', 'Pulp', 'Suede'] },
+      { name: 'Madchester', region: 'Reino Unido', family: 'Rock Británico', queries: ['madchester stone roses happy mondays'], artists: ['The Stone Roses', 'Happy Mondays', 'Inspiral Carpets'] },
+      { name: 'Shoegaze', region: 'Reino Unido / Global', family: 'Rock Alternativo', queries: ['shoegaze', 'my bloody valentine', 'slowdive', 'ride'], artists: ['My Bloody Valentine', 'Slowdive', 'Ride', 'The Verve'] },
+      { name: 'Post-Punk', region: 'Reino Unido / Global', family: 'Rock Alternativo', queries: ['post punk', 'joy division', 'wire', 'bauhaus'], artists: ['Joy Division', 'Wire', 'Bauhaus', 'Patricio Rey y sus Redonditos de Ricota'] },
+      { name: 'Darkwave / Goth Rock', region: 'Reino Unido / Europa', family: 'Rock Alternativo', queries: ['darkwave goth rock', 'the cure', 'siouxsie and the banshees', 'molchat doma'], artists: ['The Cure', 'Siouxsie and the Banshees', 'Molchat Doma', 'Lebanon Hanover'] },
+      { name: 'Post-Rock', region: 'Global', family: 'Rock Alternativo', queries: ['post rock', 'godspeed you black emperor', 'explosions in the sky', 'mogwai'], artists: ['Godspeed You! Black Emperor', 'Mogwai', 'Explosions in the Sky', 'Sigur Rós'] },
+      { name: 'Grunge', region: 'Seattle / EE.UU.', family: 'Rock Alternativo', queries: ['grunge', 'nirvana', 'soundgarden', 'pearl jam'], artists: ['Nirvana', 'Soundgarden', 'Pearl Jam', 'Alice in Chains'] },
+      { name: 'Hardcore Punk', region: 'EE.UU. / Global', family: 'Punk & Hardcore', queries: ['hardcore punk', 'minor threat', 'black flag', 'bad brains'], artists: ['Minor Threat', 'Black Flag', 'Bad Brains', 'Fugazi'] },
+      { name: 'Ska Punk', region: 'EE.UU. / Global', family: 'Punk & Hardcore', queries: ['ska punk', 'sublime', 'no doubt', 'less than jake'], artists: ['Sublime', 'No Doubt', 'Less Than Jake', 'The Mighty Mighty Bosstones'] },
+      { name: 'Emo', region: 'EE.UU. / Global', family: 'Punk & Hardcore', queries: ['emo music', 'sunny day real estate', 'american football', 'jimmy eat world'], artists: ['Sunny Day Real Estate', 'American Football', 'Jimmy Eat World', 'Title Fight'] },
+      { name: 'Thrash Metal', region: 'EE.UU. / Global', family: 'Metal', queries: ['thrash metal', 'metallica', 'slayer', 'megadeth'], artists: ['Metallica', 'Slayer', 'Megadeth', 'Sepultura'] },
+      { name: 'Death Metal', region: 'Global', family: 'Metal', queries: ['death metal', 'death band', 'morbid angel', 'cannibal corpse'], artists: ['Death', 'Morbid Angel', 'Cannibal Corpse', 'Carcass'] },
+      { name: 'Black Metal', region: 'Escandinavia / Global', family: 'Metal', queries: ['black metal', 'mayhem', 'darkthrone', 'emperor'], artists: ['Darkthrone', 'Mayhem', 'Emperor', 'Bathory'] },
+      { name: 'Doom Metal / Stoner', region: 'Global', family: 'Metal', queries: ['doom metal stoner', 'sleep dopesmoker', 'electric wizard', 'kyuss'], artists: ['Sleep', 'Electric Wizard', 'Kyuss', 'Candlemass'] },
+      { name: 'Metalcore / Post-Hardcore', region: 'EE.UU. / Global', family: 'Metal', queries: ['post hardcore metalcore', 'at the drive in', 'glassjaw', 'converge'], artists: ['At the Drive-In', 'Glassjaw', 'Converge', 'Thrice'] },
+      { name: 'Nu Metal / Groove Metal', region: 'EE.UU.', family: 'Metal', queries: ['nu metal groove metal', 'korn', 'system of a down', 'pantera'], artists: ['System of a Down', 'Korn', 'Pantera', 'Deftones'] },
+      { name: 'Power Metal / Symphonic Metal', region: 'Europa / Global', family: 'Metal', queries: ['symphonic power metal', 'nightwish', 'blind guardian', 'helloween'], artists: ['Nightwish', 'Blind Guardian', 'Helloween', 'Stratovarius'] },
+      { name: 'Afrobeat (Clásico)', region: 'Nigeria', family: 'Ritmos Africanos', queries: ['fela kuti afrobeat', 'tony allen afrobeat'], artists: ['Fela Kuti', 'Tony Allen', 'Seun Kuti'] },
+      { name: 'Afrobeats', region: 'Nigeria / África Occidental', family: 'Ritmos Africanos', queries: ['afrobeats', 'burna boy', 'wizkid', 'davido'], artists: ['Burna Boy', 'Wizkid', 'Davido', 'Tems'] },
+      { name: 'Amapiano', region: 'Sudáfrica', family: 'Ritmos Africanos', queries: ['amapiano south africa', 'kabza de small', 'tyla amapiano'], artists: ['Kabza De Small', 'DJ Maphorisa', 'Tyla', 'Uncle Waffles'] },
+      { name: 'Gqom / Kwaito', region: 'Sudáfrica', family: 'Ritmos Africanos', queries: ['gqom kwaito south africa', 'durban gqom', 'bongo maffin'], artists: ['Bongo Maffin', 'DJ Lag', 'Busiswa'] },
+      { name: 'Highlife', region: 'Ghana / Nigeria', family: 'Ritmos Africanos', queries: ['highlife ghana', 'ebo taylor', 'osibisa'], artists: ['Ebo Taylor', 'Osibisa', 'Pat Thomas'] },
+      { name: 'Soukous / Rumba Congoleña', region: 'RD Congo / Congo', family: 'Ritmos Africanos', queries: ['soukous congolese rumba', 'franco luambo', 'koffi olomide'], artists: ['Franco Luambo', 'Papa Wemba', 'Koffi Olomidé'] },
+      { name: 'Ethio-Jazz', region: 'Etiopía', family: 'Jazz & Raíces Africanas', queries: ['ethio jazz mulatu astatke', 'ethiopiques'], artists: ['Mulatu Astatke', 'Mahmoud Ahmed', 'Getatchew Mekurya'] },
+      { name: 'Desert Blues / Tuareg Rock', region: 'Mali / Sahara', family: 'Raíces Africanas', queries: ['desert blues tinariwen', 'ali farka toure', 'bombino'], artists: ['Tinariwen', 'Ali Farka Touré', 'Bombino', 'Mdou Moctar'] },
+      { name: 'Reggae Roots / Dub', region: 'Jamaica', family: 'Reggae & Caribe', queries: ['roots reggae dub', 'bob marley', 'lee scratch perry', 'augustus pablo'], artists: ['Bob Marley', 'Lee "Scratch" Perry', 'Augustus Pablo', 'Toots and the Maytals'] },
+      { name: 'Ska / Rocksteady', region: 'Jamaica', family: 'Reggae & Caribe', queries: ['ska rocksteady jamaica', 'the skatalites', 'desmond dekker'], artists: ['The Skatalites', 'Desmond Dekker', 'Alton Ellis'] },
+      { name: 'Dancehall', region: 'Jamaica / Caribe', family: 'Reggae & Caribe', queries: ['dancehall jamaica', 'vybz kartel', 'beenie man', 'shabba ranks'], artists: ['Vybz Kartel', 'Beenie Man', 'Shabba Ranks', 'Sean Paul'] },
+      { name: 'Calypso / Soca', region: 'Trinidad y Tobago / Caribe', family: 'Reggae & Caribe', queries: ['calypso soca trinidad', 'mighty sparrow', 'machel montano'], artists: ['Mighty Sparrow', 'Machel Montano', 'Lord Kitchener'] },
+      { name: 'Kompa / Zouk', region: 'Haití / Antillas', family: 'Ritmos Caribeños', queries: ['kompa haiti zouk', 'kassav', 'tabou combo'], artists: ['Kassav’', 'Tabou Combo', 'Carimi'] },
+      { name: 'Flamenco', region: 'España', family: 'Tradición Ibérica', queries: ['flamenco puro', 'camaron de la isla', 'paco de lucia'], artists: ['Camarón de la Isla', 'Paco de Lucía', 'Enrique Morente'] },
+      { name: 'Rumba Catalana', region: 'Cataluña / España', family: 'Tradición Ibérica', queries: ['rumba catalana', 'peret', 'los manolos', 'gipsy kings'], artists: ['Peret', 'Los Manolos', 'Gipsy Kings'] },
+      { name: 'Fado', region: 'Portugal', family: 'Tradición Ibérica', queries: ['fado portugues', 'amalia rodrigues', 'mariza fado'], artists: ['Amália Rodrigues', 'Mariza', 'Carminho'] },
+      { name: 'Chanson Française', region: 'Francia', family: 'Tradición Europea', queries: ['chanson francaise', 'serge gainsbourg', 'edith piaf', 'jacques brel'], artists: ['Serge Gainsbourg', 'Édith Piaf', 'Jacques Brel', 'Françoise Hardy'] },
+      { name: 'Rembetiko', region: 'Grecia', family: 'Mediterráneo', queries: ['rembetiko greece', 'markos vamvakaris'], artists: ['Markos Vamvakaris', 'Manolis Chiotis'] },
+      { name: 'Balkan Brass / Klezmer', region: 'Balcanes / Europa Central', family: 'Tradición Europea', queries: ['balkan brass klezmer', 'goran bregovic', 'the klezmatics'], artists: ['Goran Bregović', 'The Klezmatics', 'Boban Marković'] },
+      { name: 'Raï', region: 'Argelia / Magreb', family: 'Norte de África & Árabe', queries: ['rai algeria', 'cheb khaled', 'cheb mami', 'rachid taha'], artists: ['Cheb Khaled', 'Cheb Mami', 'Rachid Taha'] },
+      { name: 'Gnawa', region: 'Marruecos', family: 'Norte de África & Árabe', queries: ['gnawa morocco', 'maalem mahmoud guinia'], artists: ['Maâlem Mahmoud Guinia', 'Hassan Hakmoun'] },
+      { name: 'Bandas Sonoras / Film Score', region: 'Global', family: 'Clásica & Bandas Sonoras', queries: ['film soundtrack score', 'ennio morricone', 'hans zimmer', 'ryuichi sakamoto'], artists: ['Ennio Morricone', 'Ryuichi Sakamoto', 'Joe Hisaishi', 'Hans Zimmer'] },
+      { name: 'City Pop', region: 'Japón', family: 'Pop & Funk Asiático', queries: ['city pop japan', 'mariya takeuchi', 'tatsuro yamashita', 'anri city pop'], artists: ['Mariya Takeuchi', 'Tatsuro Yamashita', 'Anri', 'Miki Matsubara'] },
+      { name: 'Shibuya-Kei', region: 'Japón', family: 'Pop & Funk Asiático', queries: ['shibuya kei', 'pizzicato five', 'cornelius japan'], artists: ['Pizzicato Five', 'Cornelius', 'Kahimi Karie'] },
+      { name: 'Enka / Kayōkyoku', region: 'Japón', family: 'Tradición Japonesa', queries: ['enka kayokyoku japan', 'teresa teng', 'hibari misora'], artists: ['Hibari Misora', 'Teresa Teng', 'Kenji Sawada'] },
+      { name: 'K-Pop', region: 'Corea del Sur', family: 'Pop & Funk Asiático', queries: ['kpop', 'newjeans', 'bts', 'iu korea'], artists: ['NewJeans', 'IU', 'BTS', 'BIGBANG'] },
+      { name: 'Trot', region: 'Corea del Sur', family: 'Tradición Coreana', queries: ['korean trot music', 'na hoon a', 'lim young woong'], artists: ['Na Hoon-a', 'Lim Young-woong'] },
+      { name: 'K-Indie / Korean R&B', region: 'Corea del Sur', family: 'Alternativo Asiático', queries: ['korean r&b', 'dean korea', 'hyukoh'], artists: ['DEAN', 'hyukoh', 'Crush'] },
+      { name: 'Cantopop / Mandopop', region: 'Hong Kong / Taiwán / China', family: 'Pop Asiático', queries: ['cantopop mandopop', 'faye wong', 'jay chou', 'anita mui'], artists: ['Faye Wong', 'Jay Chou', 'Anita Mui', 'Leslie Cheung'] },
+      { name: 'Bollywood / Filmi', region: 'India', family: 'Música del Sur de Asia', queries: ['bollywood classic', 'a r rahman', 'lata mangeshkar', 'r d burman'], artists: ['A. R. Rahman', 'R. D. Burman', 'Lata Mangeshkar'] },
+      { name: 'Qawwali / Hindustani', region: 'Pakistán / India', family: 'Música del Sur de Asia', queries: ['nusrat fateh ali khan qawwali', 'ravi shankar'], artists: ['Nusrat Fateh Ali Khan', 'Ravi Shankar', 'Abida Parveen'] },
+      { name: 'Sorpresa', region: 'Todo el Mundo', family: 'Exploración Libre', queries: ['world music classic', 'cult album'], artists: [] }
+    ];
+
+    const ARTIST_KNOWLEDGE = [
+      { name: 'Nas', genre: 'Rap', sub: ['Rap', 'Hip Hop', 'Boom Bap', 'Nueva York'], origin: 'EE.UU.', related: ['Jay-Z', 'Mobb Deep', 'A Tribe Called Quest', 'Freddie Gibbs'] },
+      { name: 'Eminem', genre: 'Rap', sub: ['Rap', 'Hip Hop', 'Detroit'], origin: 'EE.UU.', related: ['Nas', 'Dr. Dre', 'Jay-Z', 'Kendrick Lamar'] },
+      { name: 'Jay-Z', genre: 'Rap', sub: ['Rap', 'Hip Hop', 'Nueva York'], origin: 'EE.UU.', related: ['Nas', 'Kanye West', 'Eminem', '2Pac'] },
+      { name: 'Willie Colón', genre: 'Salsa', sub: ['Salsa Brava', 'Salsa Dura', 'Fania', 'Nueva York'], origin: 'EE.UU. / Puerto Rico', related: ['Héctor Lavoe', 'Rubén Blades', 'Ray Barretto', 'Eddie Palmieri'] },
+      { name: 'Ruben Rada', genre: 'Candombe', sub: ['Candombe', 'Montevideo', 'Río de la Plata'], origin: 'Uruguay', related: ['Jaime Roos', 'Eduardo Mateo', 'Fernando Cabrera', 'Hugo Fattorusso'] },
+      { name: 'Jaime Roos', genre: 'Candombe', sub: ['Candombe', 'Murga Uruguaya', 'Montevideo'], origin: 'Uruguay', related: ['Ruben Rada', 'Eduardo Mateo', 'Fernando Cabrera'] },
+      { name: 'Sonora Borinquen', genre: 'Plena Uruguaya', sub: ['Plena Uruguaya', 'Tropical Uruguayo', 'Montevideo'], origin: 'Uruguay', related: ['Karibe con K', 'Lucas Sugo', 'Chacho Ramos'] },
+      { name: 'Donna Summer', genre: 'Disco', sub: ['Disco', 'Eurodance', 'Giorgio Moroder'], origin: 'EE.UU.', related: ['Chic', 'Bee Gees', 'Gloria Gaynor', 'Giorgio Moroder'] },
+      { name: 'Jeff Mills', genre: 'Techno', sub: ['Detroit Techno', 'Techno', 'Minimal Techno'], origin: 'EE.UU.', related: ['Richie Hawtin', 'Juan Atkins', 'Derrick May', 'Robert Hood'] },
+      { name: 'Sara Landry', genre: 'Hard Techno', sub: ['Hard Techno', 'Industrial Techno', 'Rave'], origin: 'EE.UU.', related: ['Nico Moreno', 'I Hate Models', 'Anetha'] },
+      { name: 'Héctor Lavoe', genre: 'Salsa', sub: ['Salsa Dura', 'Fania', 'Puerto Rico'], origin: 'Puerto Rico', related: ['Willie Colón', 'Rubén Blades', 'Ismael Rivera', 'Celia Cruz'] },
+      { name: 'Rubén Blades', genre: 'Salsa', sub: ['Salsa Conciencia', 'Panamá', 'Fania'], origin: 'Panamá', related: ['Willie Colón', 'Héctor Lavoe', 'Joe Arroyo'] },
+      { name: 'Los Ángeles Azules', genre: 'Cumbia', sub: ['Cumbia', 'Cumbia Mexicana', 'Iztapalapa'], origin: 'México', related: ['Celso Piña', 'Aníbal Velásquez', 'La Sonora Dinamita'] },
+      { name: 'Damas Gratis', genre: 'Cumbia Villera', sub: ['Cumbia Villera', 'Argentina', 'Teclado Villero'], origin: 'Argentina', related: ['Pibes Chorros', 'Flor de Piedra', 'Yerba Brava'] },
+      { name: 'Astor Piazzolla', genre: 'Tango', sub: ['Nuevo Tango', 'Bandoneón', 'Río de la Plata'], origin: 'Argentina', related: ['Carlos Gardel', 'Aníbal Troilo', 'Gotan Project'] },
+      { name: 'João Gilberto', genre: 'Bossa Nova', sub: ['Samba Jazz', 'Brasil', 'Violão'], origin: 'Brasil', related: ['Antônio Carlos Jobim', 'Stan Getz', 'Astrud Gilberto'] },
+      { name: 'Os Mutantes', genre: 'Tropicalia', sub: ['Psicodelia Brasileña', 'MPB', 'Brasil'], origin: 'Brasil', related: ['Caetano Veloso', 'Gilberto Gil', 'Gal Costa'] },
+      { name: 'Fela Kuti', genre: 'Afrobeat (Clásico)', sub: ['Afrobeat', 'Lagos', 'Polirritmia'], origin: 'Nigeria', related: ['Tony Allen', 'Seun Kuti', 'Burna Boy'] },
+      { name: 'Burna Boy', genre: 'Afrobeats', sub: ['Afro-Fusion', 'Nigeria', 'Dancehall'], origin: 'Nigeria', related: ['Wizkid', 'Davido', 'Tems', 'Fela Kuti'] },
+      { name: 'Mariya Takeuchi', genre: 'City Pop', sub: ['Japón 80s', 'Funk Japonés', 'AOR'], origin: 'Japón', related: ['Tatsuro Yamashita', 'Anri', 'Miki Matsubara'] },
+      { name: 'NewJeans', genre: 'K-Pop', sub: ['K-Pop', 'R&B Coreano', 'Seúl'], origin: 'Corea del Sur', related: ['IU', 'BTS', 'DEAN', 'hyukoh'] },
+      { name: 'Camarón de la Isla', genre: 'Flamenco', sub: ['Cante Jondo', 'Paco de Lucía', 'Andalucía'], origin: 'España', related: ['Paco de Lucía', 'Enrique Morente'] },
+      { name: 'Amália Rodrigues', genre: 'Fado', sub: ['Fado Tradicional', 'Lisboa'], origin: 'Portugal', related: ['Mariza', 'Carminho'] },
+      { name: 'Chico y Chica', genre: 'Synthpop', sub: ['Electropop', 'Indie Pop Español', 'Austrohúngaro'], origin: 'España', related: ['Hidrogenesse', 'Astrud', 'La Casa Azul', 'Fangoria'] },
+      { name: 'The Rolling Stones', genre: 'Rock', sub: ['Rock', 'Classic Rock', 'Blues Rock', 'Psychedelic Rock'], origin: 'Reino Unido', related: ['The Beatles', 'The Kinks', 'The Who', 'Faces'] },
+      { name: 'The Beatles', genre: 'Rock', sub: ['Rock', 'Psychedelic Rock', 'Pop Rock', 'Baroque Pop'], origin: 'Reino Unido', related: ['The Beach Boys', 'The Byrds', 'The Kinks', 'Oasis'] },
+      { name: 'Oasis', genre: 'Britpop', sub: ['Britpop', 'Alternative Rock', 'Rock'], origin: 'Reino Unido', related: ['The Verve', 'The Stone Roses', 'Blur', 'Pulp'] },
+      { name: 'The Verve', genre: 'Shoegaze', sub: ['Shoegaze', 'Britpop', 'Psychedelic Rock'], origin: 'Reino Unido', related: ['Oasis', 'The Stone Roses', 'Spiritualized', 'Ride'] },
+      { name: 'The Stone Roses', genre: 'Madchester', sub: ['Madchester', 'Indie Rock', 'Baggy'], origin: 'Reino Unido', related: ['Happy Mondays', 'Oasis', 'Inspiral Carpets', 'The Charlatans'] },
+      { name: 'Mac Miller', genre: 'Rap', sub: ['Rap', 'Hip Hop', 'Jazz Rap', 'Abstract Hip Hop'], origin: 'EE.UU.', related: ['Nas', 'Freddie Gibbs', 'Madlib', 'Earl Sweatshirt'] },
+      { name: 'Freddie Gibbs', genre: 'Rap', sub: ['Rap', 'Hip Hop', 'Boom Bap', 'Gangsta Rap'], origin: 'EE.UU.', related: ['Nas', 'Madlib', 'Mac Miller', 'Benny the Butcher'] },
+      { name: 'Madlib', genre: 'Hip Hop', sub: ['Hip Hop', 'Rap', 'Jazz Rap', 'Instrumental Hip Hop'], origin: 'EE.UU.', related: ['MF DOOM', 'J Dilla', 'Freddie Gibbs', 'Quasimoto'] },
+      { name: 'Patricio Rey y sus Redonditos de Ricota', genre: 'Rock', sub: ['Rock', 'Post-Punk', 'Hard Rock'], origin: 'Argentina', related: ['Sumo', 'Divididos', 'Las Pelotas', 'La Renga'] },
+      { name: 'Miles Davis', genre: 'Jazz', sub: ['Jazz', 'Modal Jazz', 'Jazz Fusion', 'Cool Jazz'], origin: 'EE.UU.', related: ['John Coltrane', 'Herbie Hancock', 'Bill Evans', 'Chet Baker'] }
+    ];
+
+    const SCENE_SIMILAR_ARTISTS = {
+      'rap': ['Nas', 'Eminem', 'Jay-Z', 'Kendrick Lamar', '2Pac', 'Mac Miller', 'Freddie Gibbs', 'MF DOOM'],
+      'hip hop': ['Nas', 'A Tribe Called Quest', 'MF DOOM', 'J Dilla', 'Mac Miller', 'Freddie Gibbs', 'Jay-Z'],
+      'rock': ['The Rolling Stones', 'The Beatles', 'Led Zeppelin', 'The Kinks', 'Patricio Rey y sus Redonditos de Ricota'],
+      'pop': ['Michael Jackson', 'Madonna', 'Björk', 'Dua Lipa', 'Mariya Takeuchi'],
+      'jazz': ['Miles Davis', 'John Coltrane', 'Herbie Hancock', 'Bill Evans', 'Charles Mingus'],
+      'funk': ['James Brown', 'Parliament', 'Funkadelic', 'Sly & The Family Stone', 'Prince'],
+      'soul': ['Otis Redding', 'Aretha Franklin', 'Marvin Gaye', 'Al Green', 'Stevie Wonder'],
+      'blues': ['Muddy Waters', 'Howlin’ Wolf', 'B.B. King', 'Robert Johnson', 'Stevie Ray Vaughan'],
+      'reggae': ['Bob Marley', 'Toots and the Maytals', 'Lee "Scratch" Perry', 'Peter Tosh'],
+      'electronica': ['Daft Punk', 'Aphex Twin', 'Boards of Canada', 'The Chemical Brothers', 'Brian Eno'],
+      'metal': ['Black Sabbath', 'Metallica', 'Iron Maiden', 'Judas Priest', 'Slayer'],
+      'punk': ['Ramones', 'The Clash', 'Sex Pistols', 'Buzzcocks', 'Minor Threat'],
+      'folk': ['Bob Dylan', 'Nick Drake', 'Joni Mitchell', 'Townes Van Zandt'],
+      'country': ['Johnny Cash', 'Willie Nelson', 'Dolly Parton', 'Hank Williams'],
+      'clasica': ['Ludwig van Beethoven', 'Wolfgang Amadeus Mozart', 'Claude Debussy', 'Igor Stravinsky'],
+      'candombe': ['Ruben Rada', 'Jaime Roos', 'Eduardo Mateo', 'Fernando Cabrera', 'Hugo Fattorusso'],
+      'plena uruguaya': ['Sonora Borinquen', 'Karibe con K', 'Lucas Sugo', 'Chacho Ramos'],
+      'disco': ['Donna Summer', 'Chic', 'Bee Gees', 'Gloria Gaynor', 'Giorgio Moroder'],
+      'techno': ['Jeff Mills', 'Richie Hawtin', 'Juan Atkins', 'Derrick May', 'Robert Hood'],
+      'hard techno': ['Sara Landry', 'Nico Moreno', 'I Hate Models', 'Anetha'],
+      'minimal techno': ['Ricardo Villalobos', 'Robert Hood', 'Boris Brejcha', 'Magda'],
+      'salsa': ['Héctor Lavoe', 'Rubén Blades', 'Willie Colón', 'Celia Cruz', 'Joe Arroyo'],
+      'cumbia': ['Los Ángeles Azules', 'Aníbal Velásquez', 'La Sonora Dinamita', 'Los Mirlos'],
+      'cumbia villera': ['Damas Gratis', 'Pibes Chorros', 'Flor de Piedra', 'Yerba Brava'],
+      'tango': ['Astor Piazzolla', 'Carlos Gardel', 'Aníbal Troilo', 'Gotan Project'],
+      'bossa nova': ['João Gilberto', 'Antônio Carlos Jobim', 'Stan Getz', 'Astrud Gilberto'],
+      'tropicalia': ['Os Mutantes', 'Caetano Veloso', 'Gilberto Gil', 'Gal Costa'],
+      'afrobeats': ['Burna Boy', 'Wizkid', 'Davido', 'Tems'],
+      'afrobeat (clasico)': ['Fela Kuti', 'Tony Allen', 'Seun Kuti'],
+      'city pop': ['Mariya Takeuchi', 'Tatsuro Yamashita', 'Anri', 'Miki Matsubara'],
+      'k-pop': ['NewJeans', 'IU', 'BTS', 'DEAN'],
+      'flamenco': ['Camarón de la Isla', 'Paco de Lucía', 'Enrique Morente'],
+      'fado': ['Amália Rodrigues', 'Mariza', 'Carminho'],
+      'synthpop': ['Chico y Chica', 'Depeche Mode', 'New Order', 'CHVRCHES'],
+      'psychedelic rock': ['The Beatles', 'The Rolling Stones', 'Tame Impala', 'Os Mutantes'],
+      'britpop': ['Oasis', 'Blur', 'Pulp', 'Suede'],
+      'madchester': ['The Stone Roses', 'Happy Mondays', 'Inspiral Carpets'],
+      'shoegaze': ['My Bloody Valentine', 'Slowdive', 'Ride', 'The Verve'],
+      'post-punk': ['Joy Division', 'Wire', 'Bauhaus', 'Patricio Rey y sus Redonditos de Ricota'],
+      'jazz rap': ['Mac Miller', 'Madlib', 'A Tribe Called Quest', 'Guru'],
+      'boom bap': ['Freddie Gibbs', 'Nas', 'J Dilla', 'Mobb Deep'],
+      'neo-soul': ['Erykah Badu', 'D’Angelo', 'Lauryn Hill', 'Frank Ocean']
+    };
+
+    const CURATED_FALLBACK_ALBUMS = [
+      {
+        title: 'Illmatic', artist: 'Nas', year: 1994, genre: 'Rap', depth: 1,
+        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/12/23/9f/12239f85-81f8-2771-4090-60b44e06558b/074645768421.jpg/600x600bb.jpg',
+        notes: 'Clásico fundacional del rap de Nueva York con instrumentales precisas y rimas narrativas de altísimo nivel.',
+        links: {
+          spotify: 'https://open.spotify.com/search/Nas%20Illmatic',
+          appleMusic: 'https://music.apple.com/album/illmatic/662324435',
+          deezer: 'https://www.deezer.com/album/300720'
+        }
+      },
+      {
+        title: 'Comedia', artist: 'Héctor Lavoe', year: 1978, genre: 'Salsa', depth: 1,
+        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/42/ef/7c/42ef7c77-5e1e-265d-3e84-26334430cf3e/0078635291529.rgb.jpg/600x600bb.jpg',
+        notes: 'Clásico absoluto de la salsa con arreglos de bronce filosos y la voz inconfundible de Héctor Lavoe.',
+        links: {
+          spotify: 'https://open.spotify.com/search/Hector%20Lavoe%20Comedia',
+          appleMusic: 'https://music.apple.com/album/comedia/1443828344',
+          deezer: 'https://www.deezer.com/album/1219965'
+        }
+      },
+      {
+        title: 'Getz/Gilberto', artist: 'Stan Getz & João Gilberto', year: 1964, genre: 'Bossa Nova', depth: 1,
+        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/93/b1/c2/93b1c2d0-8286-8f64-2437-f9b7d7c58009/00602537269259.rgb.jpg/600x600bb.jpg',
+        notes: 'Disco fundacional de la bossa nova brasileña y el samba jazz con João Gilberto, Stan Getz y Astrud Gilberto.',
+        links: {
+          spotify: 'https://open.spotify.com/search/Getz%20Gilberto',
+          appleMusic: 'https://music.apple.com/album/getz-gilberto/1440850516',
+          deezer: 'https://www.deezer.com/album/308716'
+        }
+      },
+      {
+        title: 'Their Satanic Majesties Request', artist: 'The Rolling Stones', year: 1967, genre: 'Rock', depth: 1,
+        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/37/8c/31/378c3168-0356-39f9-77d6-7b604e05a287/00602537467389.rgb.jpg/600x600bb.jpg',
+        notes: 'Incursión psicodélica de los Stones con mellotrones, arreglos experimentales y atmósfera lisérgica de 1967.',
+        links: {
+          spotify: 'https://open.spotify.com/search/The%20Rolling%20Stones%20Their%20Satanic%20Majesties%20Request',
+          appleMusic: 'https://music.apple.com/album/their-satanic-majesties-request/1440858695',
+          deezer: 'https://www.deezer.com/album/103248'
+        }
+      },
+      {
+        title: 'Status', artist: 'Chico y Chica', year: 2004, genre: 'Synthpop', depth: 2,
+        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/54/90/6d/54906d55-3936-1d82-0a0a-07c4f41f67e3/8429006905421.jpg/600x600bb.jpg',
+        notes: 'Obra maestra de synthpop y electropop español editada por Austrohúngaro con sintetizadores minimalistas.',
+        links: {
+          spotify: 'https://open.spotify.com/search/Chico%20y%20Chica%20Status',
+          appleMusic: 'https://music.apple.com/es/album/status/281414181',
+          deezer: 'https://www.deezer.com/album/291471'
+        }
+      },
+      {
+        title: 'Piñata', artist: 'Freddie Gibbs & Madlib', year: 2014, genre: 'Rap', depth: 1,
+        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/0f/1e/4c/0f1e4c9c-3915-7e56-683d-278590b0f6b9/886444462181.jpg/600x600bb.jpg',
+        notes: 'Fusión impecable entre los beats analógicos de soul/jazz de Madlib y la precisión lírica de Freddie Gibbs.',
+        links: {
+          spotify: 'https://open.spotify.com/search/Freddie%20Gibbs%20Madlib%20Pinata',
+          appleMusic: 'https://music.apple.com/album/pi%C3%B1ata/826080165',
+          deezer: 'https://www.deezer.com/album/7562106'
+        }
+      }
+    ];
+
+    const STORAGE_KEYS = {
+      history: 'wacho_mp3_v2_history_v1',
+      collection: 'wacho_mp3_v2_collection_v1',
+      seen: 'wacho_mp3_v2_seen_v1'
+    };
+
+    let state = {
+      history: [],
+      collection: [],
+      seenAlbums: [],
+      currentAlbum: null,
+      refBands: [],
+      depth: 1,
+      abortController: null,
+      searchToken: 0,
+      acDebounce: null,
+      artistAcDebounce: null,
+      acActiveIdx: -1,
+      artistAcActiveIdx: -1,
+      genreActiveIdx: -1
+    };
+
+    function normalizeText(str) {
+      return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    }
+
+    function cryptoRandomInt(maxExclusive) {
+      if (maxExclusive <= 1) return 0;
+      try {
+        if (window.crypto && window.crypto.getRandomValues) {
+          const arr = new Uint32Array(1);
+          window.crypto.getRandomValues(arr);
+          return arr[0] % maxExclusive;
+        }
+      } catch (e) {}
+      return Math.floor(Math.random() * maxExclusive);
+    }
+
+    function shuffleArray(list) {
+      const copy = [...list];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = cryptoRandomInt(i + 1);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function findWorldGenre(rawGenre) {
+      const q = normalizeText(rawGenre);
+      if (!q) return null;
+      const exact = WORLD_GENRES.find(g => normalizeText(g.name) === q);
+      if (exact) return exact;
+      return WORLD_GENRES.find(g =>
+        normalizeText(g.name).includes(q) ||
+        q.includes(normalizeText(g.name)) ||
+        normalizeText(g.region).includes(q) ||
+        normalizeText(g.family).includes(q) ||
+        (g.queries || []).some(qr => normalizeText(qr).includes(q) || q.includes(normalizeText(qr)))
+      ) || null;
+    }
+
+    function resolveArtistSpecificGenre(artistName, fallbackGenre) {
+      const normArtist = normalizeText(artistName || '');
+      const genericNames = new Set([
+        '', 'musica', 'música', 'musica / varios', 'música / varios',
+        'deezer', 'latin', 'tropical', 'musica tropical', 'música tropical',
+        'world', 'varios'
+      ]);
+
+      const knownArtist = ARTIST_KNOWLEDGE.find(a => {
+        const ka = normalizeText(a.name);
+        return normArtist === ka || normArtist.includes(ka) || ka.includes(normArtist);
+      });
+      if (knownArtist && knownArtist.genre) {
+        return knownArtist.genre;
+      }
+
+      const catalogGenre = WORLD_GENRES.find(g =>
+        normalizeText(g.name) !== 'sorpresa' &&
+        (g.artists || []).some(ar => {
+          const na = normalizeText(ar);
+          return na.length >= 2 && (normArtist === na || normArtist.includes(na) || na.includes(normArtist));
+        })
+      );
+      if (catalogGenre) {
+        return catalogGenre.name;
+      }
+
+      const cleanFallback = String(fallbackGenre || '').trim();
+      const normFallback = normalizeText(cleanFallback);
+      if (!cleanFallback || genericNames.has(normFallback)) {
+        return 'Música';
+      }
+
+      if (normFallback.includes('hip-hop') || normFallback.includes('hip hop') || normFallback === 'rap') {
+        return normFallback === 'rap' ? 'Rap' : 'Hip Hop';
+      }
+
+      const matchedFallback = findWorldGenre(cleanFallback);
+      return matchedFallback && normalizeText(matchedFallback.name) !== 'sorpresa'
+        ? matchedFallback.name
+        : cleanFallback;
+    }
+
+    function updateGenreHelper(rawGenre) {
+      const metaBadge = document.getElementById('genreMetaBadge');
+      const countEl = document.getElementById('genreCatalogCount');
+      countEl.textContent = `${WORLD_GENRES.length} géneros`;
+      const matched = findWorldGenre(rawGenre);
+      if (matched) {
+        metaBadge.textContent = matched.family === 'Básicos'
+          ? `Género básico · ${matched.region}`
+          : `${matched.region} · ${matched.family}`;
+        metaBadge.className = 'font-mono text-amber-300';
+      } else if (rawGenre && normalizeText(rawGenre) !== 'sorpresa') {
+        metaBadge.textContent = `Género específico: "${rawGenre}"`;
+        metaBadge.className = 'font-mono text-cyan-300';
+      } else {
+        metaBadge.textContent = 'Texto predictivo global separado por estilo y región';
+        metaBadge.className = 'font-mono text-amber-300/90';
+      }
+    }
+
+    function renderGenreDropdown(rawQuery) {
+      const box = document.getElementById('genreDropdown');
+      const q = normalizeText(rawQuery);
+      state.genreActiveIdx = -1;
+
+      const scored = WORLD_GENRES
+        .map(g => {
+          if (!q) return { g, score: g.family === 'Básicos' ? 50 : 10 };
+          const nName = normalizeText(g.name);
+          const nRegion = normalizeText(g.region);
+          const nFamily = normalizeText(g.family);
+          const nQueries = (g.queries || []).map(qr => normalizeText(qr));
+          const nArtists = (g.artists || []).map(ar => normalizeText(ar));
+
+          let score = 0;
+          if (nName === q) score += 200;
+          else if (nName.startsWith(q)) score += 120;
+          else if (nName.includes(q)) score += 80;
+          if (g.family === 'Básicos' && (nName.includes(q) || nQueries.some(qr => qr.includes(q)))) score += 45;
+          if (nRegion.includes(q)) score += 25;
+          if (nFamily.includes(q)) score += 20;
+          if (nQueries.some(qr => qr.includes(q))) score += 18;
+          if (nArtists.some(ar => ar.includes(q))) score += 15;
+
+          return { g, score };
+        })
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score || a.g.name.localeCompare(b.g.name));
+
+      const filtered = scored.slice(0, 24).map(item => item.g);
+
+      if (!filtered.length) {
+        box.innerHTML = `<div class="px-3.5 py-2.5 text-xs text-slate-400">Se buscará estrictamente el género <span class="text-amber-300 font-mono">"${rawQuery}"</span> en álbumes y canciones.</div>`;
+        box.classList.remove('hidden');
+        return;
+      }
+
+      box.innerHTML = filtered.map((g, idx) => `
+        <button type="button" data-gidx="${idx}" class="genre-opt w-full px-3.5 py-2 text-left hover:bg-slate-900 flex items-center justify-between gap-2 transition">
+          <div>
+            <div class="text-xs font-semibold text-white">${g.name}</div>
+            <div class="text-[10px] text-slate-400">${g.family === 'Básicos' ? 'Género Básico' : g.region} · ${g.family}</div>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono ${g.family === 'Básicos' ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/15 text-amber-300 border-amber-500/30'} border shrink-0">${g.family === 'Básicos' ? 'Básico' : g.region.split('/')[0].trim()}</span>
+        </button>
+      `).join('');
+      box.classList.remove('hidden');
+
+      box.querySelectorAll('.genre-opt').forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          const chosen = filtered[idx];
+          document.getElementById('genreInput').value = chosen.name;
+          updateGenreHelper(chosen.name);
+          box.classList.add('hidden');
+        });
+      });
+    }
+
+    function buildCoverFallback(title, artist) {
+      const t = String(title || 'Álbum').replace(/[<>&"]/g, '').slice(0, 26);
+      const a = String(artist || 'Wacho.mp3').replace(/[<>&"]/g, '').slice(0, 26);
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+        <rect width="600" height="600" fill="#0d1016"/>
+        <circle cx="300" cy="235" r="130" fill="#161b24" stroke="#f59e0b" stroke-width="4" stroke-opacity="0.5"/>
+        <circle cx="300" cy="235" r="36" fill="#08090c" stroke="#38bdf8" stroke-width="3"/>
+        <text x="300" y="430" text-anchor="middle" fill="#f8fafc" font-family="sans-serif" font-size="28" font-weight="bold">${t}</text>
+        <text x="300" y="470" text-anchor="middle" fill="#f59e0b" font-family="monospace" font-size="20">${a}</text>
+      </svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    function copyTextFallback(text) {
+      if (!text) return;
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (e) {}
+    }
+
+    function safeStorageGet(key) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return null;
+    }
+
+    function safeStorageSet(key, value) {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {}
+    }
+
+    function mergeAlbums(baseList, extraList) {
+      const map = new Map();
+      [...(extraList || []), ...(baseList || [])].forEach(item => {
+        if (!item || !item.title || !item.artist) return;
+        const normKey = `${normalizeText(item.artist)}::${normalizeText(item.title)}`;
+        if (!map.has(normKey)) {
+          map.set(normKey, {
+            ...item,
+            sources: Array.isArray(item.sources) ? [...new Set(item.sources)] : item.sources
+          });
+        } else {
+          const existing = map.get(normKey);
+          const mergedSources = Array.isArray(existing.sources) || Array.isArray(item.sources)
+            ? [...new Set([...(existing.sources || []), ...(item.sources || [])])]
+            : undefined;
+          map.set(normKey, {
+            ...existing,
+            ...item,
+            sources: mergedSources,
+            links: { ...(existing.links || {}), ...(item.links || {}) }
+          });
+        }
+      });
+      return Array.from(map.values()).slice(0, 200);
+    }
+
+    function initPersistence() {
+      const localHist = safeStorageGet(STORAGE_KEYS.history);
+      state.history = Array.isArray(localHist) ? mergeAlbums([], localHist) : [];
+
+      const localCol = safeStorageGet(STORAGE_KEYS.collection);
+      state.collection = Array.isArray(localCol) ? mergeAlbums([], localCol) : [];
+
+      const localSeen = safeStorageGet(STORAGE_KEYS.seen);
+      state.seenAlbums = Array.isArray(localSeen) ? localSeen.slice(-250) : [];
+
+      renderHistory();
+      renderCollection();
+    }
+
+    function markAlbumSeen(albumKey) {
+      if (!albumKey) return;
+      state.seenAlbums = [...state.seenAlbums.filter(k => k !== albumKey), albumKey].slice(-250);
+      safeStorageSet(STORAGE_KEYS.seen, state.seenAlbums);
+    }
+
+    function recordInHistory(album) {
+      if (!album || !album.title) return;
+      const stamped = { ...album, timestamp: Date.now() };
+      const albumKey = `${normalizeText(album.artist)}::${normalizeText(album.title)}`;
+      markAlbumSeen(albumKey);
+      state.history = mergeAlbums([stamped], state.history);
+      safeStorageSet(STORAGE_KEYS.history, state.history);
+      renderHistory();
+    }
+
+    async function fetchJsonSafe(url, signal, timeoutMs = 4200) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      if (signal) {
+        signal.addEventListener('abort', () => controller.abort(), { once: true });
+      }
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timer);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (e) {
+        clearTimeout(timer);
+        return null;
+      }
+    }
+
+    function fetchDeezerJsonp(url, signal, timeoutMs = 3800) {
+      return new Promise((resolve) => {
+        const cbName = 'wacho_v2_dz_cb_' + Math.random().toString(36).slice(2, 9);
+        const script = document.createElement('script');
+        let finished = false;
+
+        const cleanup = () => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          try { delete window[cbName]; } catch (e) {}
+          if (script.parentNode) script.parentNode.removeChild(script);
+        };
+
+        const timer = setTimeout(() => {
+          cleanup();
+          resolve(null);
+        }, timeoutMs);
+
+        if (signal) {
+          signal.addEventListener('abort', () => {
+            cleanup();
+            resolve(null);
+          }, { once: true });
+        }
+
+        window[cbName] = (data) => {
+          cleanup();
+          resolve(data || null);
+        };
+
+        const sep = url.includes('?') ? '&' : '?';
+        script.src = `${url}${sep}output=jsonp&callback=${cbName}`;
+        script.onerror = () => {
+          cleanup();
+          resolve(null);
+        };
+        document.body.appendChild(script);
+      });
+    }
+
+    const PLATFORM_CONFIG = [
+      { key: 'spotify', name: 'Spotify', badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', domains: ['open.spotify.com/album/', 'open.spotify.com/search/'] },
+      { key: 'youtubeMusic', name: 'YouTube Music', badge: 'bg-red-500/15 text-red-300 border-red-500/30', domains: ['music.youtube.com/playlist?list=', 'music.youtube.com/browse/', 'music.youtube.com/search'] },
+      { key: 'appleMusic', name: 'Apple Music', badge: 'bg-rose-500/15 text-rose-300 border-rose-500/30', domains: ['music.apple.com/'] },
+      { key: 'itunes', name: 'iTunes', badge: 'bg-pink-500/15 text-pink-300 border-pink-500/30', domains: ['itunes.apple.com/'] },
+      { key: 'deezer', name: 'Deezer', badge: 'bg-purple-500/15 text-purple-300 border-purple-500/30', domains: ['deezer.com/album/', 'deezer.com/es/album/', 'deezer.com/us/album/', 'deezer.com/search/'] },
+      { key: 'tidal', name: 'Tidal', badge: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30', domains: ['listen.tidal.com/album/', 'tidal.com/browse/album/'] },
+      { key: 'amazonMusic', name: 'Amazon Music', badge: 'bg-sky-500/15 text-sky-300 border-sky-500/30', domains: ['music.amazon.com/albums/', 'music.amazon.es/albums/'] },
+      { key: 'bandcamp', name: 'Bandcamp', badge: 'bg-teal-500/15 text-teal-300 border-teal-500/30', domains: ['.bandcamp.com/album/'] },
+      { key: 'soundcloud', name: 'SoundCloud', badge: 'bg-orange-500/15 text-orange-300 border-orange-500/30', domains: ['soundcloud.com/'] }
+    ];
+
+    function sanitizeDirectPlatformLinks(rawLinks) {
+      const clean = {};
+      if (!rawLinks || typeof rawLinks !== 'object') return clean;
+      for (const cfg of PLATFORM_CONFIG) {
+        const url = rawLinks[cfg.key];
+        if (typeof url !== 'string' || !url.startsWith('https://')) continue;
+        if (url.includes('album.link') || url.includes('song.link')) continue;
+        if (cfg.domains.some(d => url.includes(d))) {
+          clean[cfg.key] = url;
+        }
+      }
+      if (clean.appleMusic && !clean.itunes) {
+        clean.itunes = clean.appleMusic.replace('https://music.apple.com/', 'https://itunes.apple.com/');
+      }
+      return clean;
+    }
+
+    async function resolveDirectLinks(album, signal) {
+      const links = sanitizeDirectPlatformLinks(album.links || {});
+      const queryEncoded = encodeURIComponent(`${album.artist || ''} ${album.title || ''}`.trim());
+
+      if (!links.deezer && album.title && album.artist) {
+        const dz = await fetchDeezerJsonp(
+          `https://api.deezer.com/search/album?q=${encodeURIComponent(album.artist + ' ' + album.title)}&limit=5`,
+          signal,
+          3000
+        );
+        if (dz && Array.isArray(dz.data) && dz.data[0]?.link) {
+          links.deezer = dz.data[0].link;
+        }
+      }
+
+      const seedUrl = links.appleMusic || links.deezer || links.spotify;
+      if (seedUrl && !seedUrl.includes('/search')) {
+        const odesli = await fetchJsonSafe(
+          `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(seedUrl)}`,
+          signal,
+          3600
+        );
+        if (odesli && odesli.linksByPlatform) {
+          const p = odesli.linksByPlatform;
+          if (p.spotify?.url) links.spotify = p.spotify.url;
+          if (p.youtubeMusic?.url) links.youtubeMusic = p.youtubeMusic.url;
+          if (p.appleMusic?.url) links.appleMusic = p.appleMusic.url;
+          if (p.itunesStore?.url) links.itunes = p.itunesStore.url;
+          if (p.deezer?.url) links.deezer = p.deezer.url;
+          if (p.tidal?.url) links.tidal = p.tidal.url;
+          if (p.amazonMusic?.url) links.amazonMusic = p.amazonMusic.url;
+          if (p.soundcloud?.url) links.soundcloud = p.soundcloud.url;
+        }
+      }
+
+      if (!links.spotify && album.title && album.artist) {
+        const itunesAlbum = await fetchJsonSafe(
+          `https://itunes.apple.com/search?term=${encodeURIComponent(album.artist + ' ' + album.title)}&entity=album&limit=1`,
+          signal,
+          2800
+        );
+        const altAppleUrl = itunesAlbum?.results?.[0]?.collectionViewUrl;
+        if (altAppleUrl && altAppleUrl !== seedUrl) {
+          const odesliAlt = await fetchJsonSafe(
+            `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(altAppleUrl)}`,
+            signal,
+            3200
+          );
+          const pAlt = odesliAlt?.linksByPlatform;
+          if (pAlt?.spotify?.url) links.spotify = pAlt.spotify.url;
+          if (!links.youtubeMusic && pAlt?.youtubeMusic?.url) links.youtubeMusic = pAlt.youtubeMusic.url;
+        }
+      }
+
+      if (queryEncoded) {
+        if (!links.spotify) links.spotify = `https://open.spotify.com/search/${queryEncoded}`;
+        if (!links.youtubeMusic) links.youtubeMusic = `https://music.youtube.com/search?q=${queryEncoded}`;
+        if (!links.deezer) links.deezer = `https://www.deezer.com/search/${queryEncoded}`;
+      }
+
+      return sanitizeDirectPlatformLinks(links);
+    }
+
+    async function fetchAlbumTracklist(album, signal) {
+      const tracks = [];
+      if (album.collectionId) {
+        const lookup = await fetchJsonSafe(
+          `https://itunes.apple.com/lookup?id=${encodeURIComponent(album.collectionId)}&entity=song&limit=100`,
+          signal,
+          3500
+        );
+        if (lookup && Array.isArray(lookup.results)) {
+          lookup.results.forEach(r => {
+            if (r.wrapperType === 'track' && r.trackName) {
+              const sec = r.trackTimeMillis ? Math.round(r.trackTimeMillis / 1000) : 0;
+              const mm = Math.floor(sec / 60);
+              const ss = String(sec % 60).padStart(2, '0');
+              tracks.push({
+                number: r.trackNumber || tracks.length + 1,
+                title: r.trackName,
+                duration: sec ? `${mm}:${ss}` : '',
+                previewUrl: r.previewUrl || ''
+              });
+            }
+          });
+        }
+      }
+      return tracks;
+    }
+
+    async function searchArtistSuggestions(query, signal) {
+      const qNorm = normalizeText(query);
+      if (!qNorm) return [];
+
+      const localMatches = ARTIST_KNOWLEDGE.filter(a =>
+        normalizeText(a.name).includes(qNorm) ||
+        normalizeText(a.genre).includes(qNorm) ||
+        normalizeText(a.origin).includes(qNorm) ||
+        a.sub.some(s => normalizeText(s).includes(qNorm))
+      ).map(a => ({
+        name: a.name,
+        genre: a.genre,
+        sub: a.sub,
+        related: a.related,
+        origin: a.origin,
+        source: 'Curaduría'
+      }));
+
+      const [itunesData, dzData] = await Promise.all([
+        fetchJsonSafe(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=musicArtist&limit=6`, signal, 3000),
+        fetchDeezerJsonp(`https://api.deezer.com/search/artist?q=${encodeURIComponent(query)}&limit=5`, signal, 3000)
+      ]);
+
+      const apiMatches = [];
+      if (itunesData && Array.isArray(itunesData.results)) {
+        itunesData.results.forEach(r => {
+          if (!r.artistName) return;
+          const resolvedGenre = resolveArtistSpecificGenre(r.artistName, r.primaryGenreName);
+          apiMatches.push({
+            name: r.artistName,
+            genre: resolvedGenre,
+            sub: r.primaryGenreName ? [resolvedGenre, r.primaryGenreName] : [resolvedGenre],
+            related: [],
+            origin: '',
+            source: 'Apple Music'
+          });
+        });
+      }
+
+      if (dzData && Array.isArray(dzData.data)) {
+        dzData.data.forEach(a => {
+          if (!a.name) return;
+          const resolvedGenre = resolveArtistSpecificGenre(a.name, '');
+          apiMatches.push({
+            name: a.name,
+            genre: resolvedGenre,
+            sub: [resolvedGenre],
+            related: [],
+            origin: '',
+            source: 'Deezer'
+          });
+        });
+      }
+
+      const merged = new Map();
+      [...localMatches, ...apiMatches].forEach(item => {
+        const key = normalizeText(item.name);
+        if (!merged.has(key)) {
+          merged.set(key, item);
+        } else {
+          const prev = merged.get(key);
+          if (prev.source !== 'Curaduría' && item.source === 'Curaduría') merged.set(key, item);
+        }
+      });
+
+      return Array.from(merged.values()).slice(0, 8);
+    }
+
+    function renderAutocomplete(items) {
+      const box = document.getElementById('autocompleteDropdown');
+      state.acActiveIdx = -1;
+      if (!items.length) {
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+      }
+      box.innerHTML = items.map((item, idx) => `
+        <button type="button" data-idx="${idx}" class="ac-item w-full px-3.5 py-2.5 text-left hover:bg-slate-900 flex items-center justify-between gap-2 transition">
+          <div>
+            <div class="text-sm font-medium text-white">${item.name}</div>
+            <div class="text-[11px] text-slate-400">${item.origin ? item.origin + ' • ' : ''}${(item.sub || []).slice(0, 2).join(', ') || item.genre}</div>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shrink-0">${item.genre}</span>
+        </button>
+      `).join('');
+      box.classList.remove('hidden');
+
+      box.querySelectorAll('.ac-item').forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          addReferenceBand(items[idx]);
+          document.getElementById('refBandInput').value = '';
+          box.classList.add('hidden');
+        });
+      });
+    }
+
+    function renderArtistAutocomplete(items) {
+      const box = document.getElementById('artistAutocompleteDropdown');
+      state.artistAcActiveIdx = -1;
+      if (!items.length) {
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+      }
+      box.innerHTML = items.map((item, idx) => `
+        <button type="button" data-idx="${idx}" class="artist-ac-item w-full px-3.5 py-2.5 text-left hover:bg-slate-900 flex items-center justify-between gap-2 transition">
+          <div>
+            <div class="text-sm font-medium text-white">${item.name}</div>
+            <div class="text-[11px] text-slate-400">${item.origin ? item.origin + ' • ' : ''}${(item.sub || []).slice(0, 2).join(', ') || item.genre}</div>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0">${item.genre}</span>
+        </button>
+      `).join('');
+      box.classList.remove('hidden');
+
+      box.querySelectorAll('.artist-ac-item').forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          document.getElementById('artistSearchInput').value = items[idx].name;
+          box.classList.add('hidden');
+          searchArtistDiscography();
+        });
+      });
+    }
+
+    function bindAutocompleteKeyboard(inputEl, dropdownSelector, onEnterEmpty) {
+      inputEl.addEventListener('keydown', (e) => {
+        const box = document.querySelector(dropdownSelector);
+        const items = box ? box.querySelectorAll('button') : [];
+        const isOpen = box && !box.classList.contains('hidden') && items.length > 0;
+
+        if (e.key === 'ArrowDown' && isOpen) {
+          e.preventDefault();
+          const current = dropdownSelector === '#autocompleteDropdown'
+            ? state.acActiveIdx
+            : dropdownSelector === '#artistAutocompleteDropdown'
+              ? state.artistAcActiveIdx
+              : state.genreActiveIdx;
+          const next = (current + 1) % items.length;
+          if (dropdownSelector === '#autocompleteDropdown') state.acActiveIdx = next;
+          else if (dropdownSelector === '#artistAutocompleteDropdown') state.artistAcActiveIdx = next;
+          else state.genreActiveIdx = next;
+          items.forEach((btn, i) => btn.classList.toggle('bg-slate-900', i === next));
+          return;
+        }
+
+        if (e.key === 'ArrowUp' && isOpen) {
+          e.preventDefault();
+          const current = dropdownSelector === '#autocompleteDropdown'
+            ? state.acActiveIdx
+            : dropdownSelector === '#artistAutocompleteDropdown'
+              ? state.artistAcActiveIdx
+              : state.genreActiveIdx;
+          const prev = current <= 0 ? items.length - 1 : current - 1;
+          if (dropdownSelector === '#autocompleteDropdown') state.acActiveIdx = prev;
+          else if (dropdownSelector === '#artistAutocompleteDropdown') state.artistAcActiveIdx = prev;
+          else state.genreActiveIdx = prev;
+          items.forEach((btn, i) => btn.classList.toggle('bg-slate-900', i === prev));
+          return;
+        }
+
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const activeIdx = dropdownSelector === '#autocompleteDropdown'
+            ? state.acActiveIdx
+            : dropdownSelector === '#artistAutocompleteDropdown'
+              ? state.artistAcActiveIdx
+              : state.genreActiveIdx;
+          if (isOpen && activeIdx >= 0 && items[activeIdx]) {
+            items[activeIdx].click();
+          } else if (typeof onEnterEmpty === 'function') {
+            onEnterEmpty();
+          }
+        }
+      });
+    }
+
+    async function addReferenceBand(bandObjOrName) {
+      if (state.refBands.length >= 5) return;
+      let bandObj = typeof bandObjOrName === 'string'
+        ? { name: bandObjOrName.trim(), genre: '', sub: [], related: [] }
+        : bandObjOrName;
+
+      if (!bandObj.name) return;
+      if (state.refBands.some(b => normalizeText(b.name) === normalizeText(bandObj.name))) return;
+
+      if (!bandObj.genre) {
+        const known = ARTIST_KNOWLEDGE.find(a => normalizeText(a.name) === normalizeText(bandObj.name));
+        if (known) {
+          bandObj = { ...known };
+        } else {
+          const suggestions = await searchArtistSuggestions(bandObj.name, null);
+          if (suggestions[0]) {
+            bandObj = { ...suggestions[0], name: bandObj.name };
+          } else {
+            bandObj.genre = 'Estilo Afín';
+          }
+        }
+      }
+
+      state.refBands.push(bandObj);
+      renderRefBands();
+    }
+
+    function removeReferenceBand(idx) {
+      state.refBands.splice(idx, 1);
+      renderRefBands();
+    }
+
+    function renderRefBands() {
+      const container = document.getElementById('refTagsContainer');
+      document.getElementById('refCount').textContent = `${state.refBands.length}/5`;
+
+      container.innerHTML = state.refBands.map((b, i) => `
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/15 border border-cyan-500/35 text-xs text-cyan-200">
+          <span class="font-medium">${b.name}</span>
+          <span class="text-[10px] font-mono text-cyan-400/80">(${b.genre})</span>
+          <button type="button" data-remove="${i}" class="hover:text-white font-bold ml-0.5">×</button>
+        </span>
+      `).join('');
+
+      container.querySelectorAll('button[data-remove]').forEach(btn => {
+        btn.addEventListener('click', () => removeReferenceBand(Number(btn.dataset.remove)));
+      });
+
+      const dnaText = document.getElementById('detectedDnaText');
+      const applyBtn = document.getElementById('btnApplyDetectedGenre');
+
+      if (state.refBands.length === 0) {
+        dnaText.textContent = 'Escribí una banda y detecto su estilo específico y región automáticamente.';
+        applyBtn.classList.add('hidden');
+      } else {
+        const genres = [...new Set(state.refBands.map(b => b.genre).filter(Boolean))];
+        const subs = [...new Set(state.refBands.flatMap(b => b.sub || []))].slice(0, 4);
+        dnaText.innerHTML = `<span class="text-cyan-300 font-semibold">${genres.join(' + ')}</span>${subs.length ? ` · Etiquetas: ${subs.join(', ')}` : ''}. Si dejás el género vacío, busco estrictamente dentro de este universo.`;
+        applyBtn.classList.remove('hidden');
+        applyBtn.onclick = () => {
+          document.getElementById('genreInput').value = genres[0] || '';
+          updateGenreHelper(genres[0] || '');
+        };
+      }
+    }
+
+    function showStage(stageName) {
+      ['stageIdle', 'stageLoading', 'stageCancelled', 'stageResult'].forEach(id => {
+        document.getElementById(id).classList.toggle('hidden', id !== stageName);
+      });
+    }
+
+    function cancelCurrentSearch() {
+      state.searchToken++;
+      if (state.abortController) {
+        state.abortController.abort();
+        state.abortController = null;
+      }
+      document.getElementById('btnCancelSearch').classList.add('hidden');
+      document.getElementById('btnCancelArtistSearch').classList.add('hidden');
+      showStage('stageCancelled');
+    }
+
+    function albumMatchesStrictGenre(item, matchedGenreObj, rawGenre) {
+      if (!rawGenre || normalizeText(rawGenre) === 'sorpresa') return true;
+      const titleNorm = normalizeText(item.collectionName || item.title || '');
+      const artistNorm = normalizeText(item.artistName || item.artist || '');
+      const trackNorm = normalizeText(item.trackName || item.matchedTrack || '');
+      const itunesGenreNorm = normalizeText(item.primaryGenreName || item.genre || '');
+      const combined = `${titleNorm} ${artistNorm} ${trackNorm} ${itunesGenreNorm}`;
+
+      const knownArtist = ARTIST_KNOWLEDGE.find(a =>
+        normalizeText(a.name) === artistNorm || artistNorm.includes(normalizeText(a.name))
+      );
+      const knownGenreNorm = knownArtist
+        ? normalizeText([knownArtist.genre, ...(knownArtist.sub || [])].join(' '))
+        : '';
+
+      if (matchedGenreObj) {
+        const targetNames = [
+          normalizeText(matchedGenreObj.name),
+          ...(matchedGenreObj.queries || []).map(q => normalizeText(q)),
+          ...(matchedGenreObj.artists || []).map(a => normalizeText(a))
+        ].filter(Boolean);
+
+        const isKnownArtistInGenre = (matchedGenreObj.artists || []).some(a => {
+          const na = normalizeText(a);
+          return na.length >= 2 && (artistNorm === na || artistNorm.includes(na) || na.includes(artistNorm));
+        });
+        if (isKnownArtistInGenre) return true;
+
+        const mainGenreWord = normalizeText(matchedGenreObj.name.split('/')[0].split('(')[0]).trim();
+        if (mainGenreWord.length >= 3) {
+          if (combined.includes(mainGenreWord) || knownGenreNorm.includes(mainGenreWord)) return true;
+        }
+
+        return targetNames.some(tok => tok.length >= 3 && (combined.includes(tok) || knownGenreNorm.includes(tok)));
+      }
+
+      const rawNorm = normalizeText(rawGenre);
+      const rawMain = normalizeText(rawGenre.split('/')[0].split('(')[0]).trim();
+      if (rawMain.length >= 3) {
+        return combined.includes(rawMain) || knownGenreNorm.includes(rawMain) || combined.includes(rawNorm);
+      }
+      return combined.includes(rawNorm);
+    }
+
+    async function discoverRandomAlbum() {
+      const token = ++state.searchToken;
+      if (state.abortController) state.abortController.abort();
+      state.abortController = new AbortController();
+      const signal = state.abortController.signal;
+
+      const btnCancel = document.getElementById('btnCancelSearch');
+      btnCancel.classList.remove('hidden');
+      showStage('stageLoading');
+
+      const rawGenre = document.getElementById('genreInput').value.trim();
+      const matchedGenreObj = findWorldGenre(rawGenre);
+      const yearFrom = parseInt(document.getElementById('yearFrom').value, 10) || 1900;
+      const yearTo = parseInt(document.getElementById('yearTo').value, 10) || 2026;
+      const minYear = Math.min(yearFrom, yearTo);
+      const maxYear = Math.max(yearFrom, yearTo);
+
+      const depthSubQueries = {
+        1: ['greatest hits', 'classic', 'anthology', 'essential'],
+        2: ['live', 'session', 'deluxe', 'vol'],
+        3: ['ep', 'indie', 'alternative', 'sessions'],
+        4: ['rare', 'demo', 'outtakes', 'underground', 'instrumental']
+      };
+      const depthModifiers = depthSubQueries[state.depth] || depthSubQueries[1];
+      const randomMod = depthModifiers[cryptoRandomInt(depthModifiers.length)];
+
+      let searchQueries = [];
+      let songQueries = [];
+      let inferredGenre = matchedGenreObj ? matchedGenreObj.name : rawGenre;
+      const refBandNormSet = new Set(state.refBands.map(b => normalizeText(b.name)));
+      let allowedSimilarArtists = [];
+      let allowedStyleTokens = [];
+
+      if (state.refBands.length > 0) {
+        const primaryBand = state.refBands[cryptoRandomInt(state.refBands.length)];
+        const primaryGenreNorm = normalizeText(primaryBand.genre || '');
+        if (!inferredGenre || normalizeText(inferredGenre) === 'sorpresa') {
+          inferredGenre = primaryBand.genre || 'Estilo Afín';
+        }
+
+        const sceneMatches = Object.entries(SCENE_SIMILAR_ARTISTS)
+          .filter(([key]) => primaryGenreNorm.includes(key) || key.includes(primaryGenreNorm.split('/')[0].trim()))
+          .flatMap(([, list]) => list);
+
+        const allRefRelated = state.refBands.flatMap(b => b.related || []);
+        allowedSimilarArtists = [...new Set([...(primaryBand.related || []), ...allRefRelated, ...sceneMatches])]
+          .filter(art => art && !refBandNormSet.has(normalizeText(art)));
+
+        if (allowedSimilarArtists.length === 0) {
+          const simQuery = primaryBand.sub?.[0] || primaryBand.genre || primaryBand.name;
+          const fetchedSim = await searchArtistSuggestions(simQuery, signal);
+          allowedSimilarArtists = fetchedSim
+            .map(s => s.name)
+            .filter(name => name && !refBandNormSet.has(normalizeText(name)) && normalizeText(name) !== normalizeText(primaryBand.name));
+        }
+
+        allowedStyleTokens = [
+          ...state.refBands.flatMap(b => [b.genre, ...(b.sub || [])]),
+          inferredGenre
+        ]
+          .map(t => normalizeText(t))
+          .filter(Boolean);
+
+        const shuffledSimilar = shuffleArray(allowedSimilarArtists).slice(0, 3);
+        shuffledSimilar.forEach(art => searchQueries.push(art));
+        if (cryptoRandomInt(100) < 35) {
+          searchQueries.push(primaryBand.name);
+        }
+
+        if (state.depth >= 2 && primaryBand.sub && primaryBand.sub.length) {
+          const pickedSub = primaryBand.sub[cryptoRandomInt(primaryBand.sub.length)];
+          searchQueries.push(`${pickedSub} ${randomMod}`);
+        }
+      } else if (rawGenre && normalizeText(rawGenre) !== 'sorpresa') {
+        if (matchedGenreObj) {
+          const genreArtists = shuffleArray(matchedGenreObj.artists || []).slice(0, 2);
+          genreArtists.forEach(art => searchQueries.push(art));
+          const genreQList = shuffleArray(matchedGenreObj.queries || [matchedGenreObj.name]).slice(0, 2);
+          genreQList.forEach(qItem => searchQueries.push(qItem));
+          searchQueries.push(`${matchedGenreObj.name} ${randomMod}`);
+          songQueries.push(matchedGenreObj.name);
+        } else {
+          searchQueries.push(rawGenre);
+          searchQueries.push(`${rawGenre} album`);
+          searchQueries.push(`${rawGenre} ${randomMod}`);
+          songQueries.push(rawGenre);
+        }
+      } else {
+        const randomGenreEntry = WORLD_GENRES[cryptoRandomInt(WORLD_GENRES.length)];
+        inferredGenre = randomGenreEntry?.name || 'Batea Global';
+        const pickedArtists = shuffleArray(randomGenreEntry?.artists || []).slice(0, 2);
+        pickedArtists.forEach(a => searchQueries.push(a));
+        if (randomGenreEntry?.queries?.[0]) {
+          searchQueries.push(randomGenreEntry.queries[0]);
+        }
+      }
+
+      document.getElementById('loadingStatusText').textContent = state.refBands.length > 0
+        ? `Buscando artistas parecidos a ${state.refBands.map(b => b.name).join(' / ')} · Nivel ${state.depth} (${minYear}–${maxYear})...`
+        : `Explorando género: ${inferredGenre || 'Batea Global'} · Nivel ${state.depth} (${minYear}–${maxYear})...`;
+
+      let strictCandidates = [];
+      let looseCandidates = [];
+      const randOffset = cryptoRandomInt(35);
+
+      const matchesReferenceSound = (artistName, primaryGenre) => {
+        if (state.refBands.length === 0) return true;
+        const normArt = normalizeText(artistName);
+        if (refBandNormSet.has(normArt)) return true;
+
+        const isKnownSimilar = allowedSimilarArtists.some(sim => {
+          const normSim = normalizeText(sim);
+          return normArt === normSim || normArt.includes(normSim) || normSim.includes(normArt);
+        });
+        if (isKnownSimilar) return true;
+
+        const knownArtistObj = ARTIST_KNOWLEDGE.find(a =>
+          normalizeText(a.name) === normArt || normArt.includes(normalizeText(a.name))
+        );
+        const combinedGenreText = normalizeText([
+          primaryGenre || '',
+          knownArtistObj?.genre || '',
+          ...(knownArtistObj?.sub || [])
+        ].join(' '));
+
+        const matchesAllowedToken = allowedStyleTokens.some(tok => {
+          const mainTok = tok.split('/')[0].trim();
+          return mainTok.length >= 3 && combinedGenreText.includes(mainTok);
+        });
+        if (matchesAllowedToken) return true;
+
+        if (rawGenre && normalizeText(rawGenre) !== 'sorpresa') {
+          const gMain = normalizeText(rawGenre).split('/')[0].trim();
+          if (gMain.length >= 3 && combinedGenreText.includes(gMain)) return true;
+        }
+
+        return false;
+      };
+
+      const uniqueQueries = [...new Set(searchQueries.filter(Boolean))];
+
+      for (const q of shuffleArray(uniqueQueries)) {
+        if (signal.aborted || token !== state.searchToken) return;
+        const queryOffset = (randOffset + cryptoRandomInt(15)) % 45;
+        const [itunesData, dzData] = await Promise.all([
+          fetchJsonSafe(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=album&limit=35&offset=${queryOffset}`, signal, 4000),
+          fetchDeezerJsonp(`https://api.deezer.com/search/album?q=${encodeURIComponent(q)}&limit=20`, signal, 3500)
+        ]);
+
+        if (itunesData && Array.isArray(itunesData.results)) {
+          itunesData.results.forEach(item => {
+            const yr = item.releaseDate ? parseInt(item.releaseDate.slice(0, 4), 10) : 0;
+            if (yr >= minYear && yr <= maxYear && item.collectionName && item.artistName) {
+              if (!matchesReferenceSound(item.artistName, item.primaryGenreName)) return;
+              const resolvedArtistGenre = resolveArtistSpecificGenre(item.artistName, item.primaryGenreName);
+              const displayGenre = inferredGenre && normalizeText(inferredGenre) !== 'sorpresa'
+                ? inferredGenre
+                : resolvedArtistGenre;
+              const candidateObj = {
+                collectionId: item.collectionId,
+                title: item.collectionName,
+                artist: item.artistName,
+                year: yr,
+                genre: displayGenre,
+                depth: state.depth,
+                cover: (item.artworkUrl100 || '').replace('100x100bb', '600x600bb') || buildCoverFallback(item.collectionName, item.artistName),
+                notes: state.refBands.length > 0
+                  ? `Artista afín a ${state.refBands.map(b => b.name).join(', ')} dentro de ${displayGenre} (${yr}), nivel ${state.depth}.`
+                  : `Álbum seleccionado para ${displayGenre}${matchedGenreObj ? ` (${matchedGenreObj.region})` : ''} (${yr}), nivel ${state.depth}.`,
+                links: item.collectionViewUrl ? { appleMusic: item.collectionViewUrl } : {}
+              };
+              if (albumMatchesStrictGenre(item, matchedGenreObj, rawGenre)) {
+                strictCandidates.push(candidateObj);
+              } else {
+                looseCandidates.push(candidateObj);
+              }
+            }
+          });
+        }
+
+        if (dzData && Array.isArray(dzData.data)) {
+          dzData.data.forEach(dz => {
+            const yr = dz.release_date ? parseInt(dz.release_date.slice(0, 4), 10) : 2000;
+            const artName = dz.artist?.name || '';
+            if (yr >= minYear && yr <= maxYear && dz.title && artName) {
+              if (!matchesReferenceSound(artName, '')) return;
+              const resolvedArtistGenre = resolveArtistSpecificGenre(artName, '');
+              const displayGenre = inferredGenre && normalizeText(inferredGenre) !== 'sorpresa'
+                ? inferredGenre
+                : resolvedArtistGenre;
+              const candidateObj = {
+                collectionId: null,
+                title: dz.title,
+                artist: artName,
+                year: yr,
+                genre: displayGenre,
+                depth: state.depth,
+                cover: dz.cover_xl || dz.cover_big || dz.cover_medium || buildCoverFallback(dz.title, artName),
+                notes: state.refBands.length > 0
+                  ? `Artista afín a ${state.refBands.map(b => b.name).join(', ')} dentro de ${displayGenre} (${yr}), nivel ${state.depth}.`
+                  : `Álbum seleccionado para ${displayGenre}${matchedGenreObj ? ` (${matchedGenreObj.region})` : ''} (${yr}), nivel ${state.depth}.`,
+                links: dz.link ? { deezer: dz.link } : {}
+              };
+              const dzComparable = { title: dz.title, artist: artName, genre: displayGenre };
+              if (albumMatchesStrictGenre(dzComparable, matchedGenreObj, rawGenre)) {
+                strictCandidates.push(candidateObj);
+              } else {
+                looseCandidates.push(candidateObj);
+              }
+            }
+          });
+        }
+      }
+
+      // Coincidencias también por canciones cuando se busca un género
+      for (const sq of shuffleArray([...new Set(songQueries.filter(Boolean))]).slice(0, 2)) {
+        if (signal.aborted || token !== state.searchToken) return;
+        const songData = await fetchJsonSafe(
+          `https://itunes.apple.com/search?term=${encodeURIComponent(sq)}&entity=song&limit=25&offset=${cryptoRandomInt(20)}`,
+          signal,
+          3500
+        );
+        if (songData && Array.isArray(songData.results)) {
+          songData.results.forEach(tr => {
+            const yr = tr.releaseDate ? parseInt(tr.releaseDate.slice(0, 4), 10) : 0;
+            if (yr >= minYear && yr <= maxYear && tr.collectionName && tr.artistName && tr.trackName) {
+              if (!matchesReferenceSound(tr.artistName, tr.primaryGenreName)) return;
+              const displayGenre = inferredGenre && normalizeText(inferredGenre) !== 'sorpresa'
+                ? inferredGenre
+                : resolveArtistSpecificGenre(tr.artistName, tr.primaryGenreName);
+              const candidateFromSong = {
+                collectionId: tr.collectionId,
+                title: tr.collectionName,
+                artist: tr.artistName,
+                year: yr,
+                genre: displayGenre,
+                depth: state.depth,
+                cover: (tr.artworkUrl100 || '').replace('100x100bb', '600x600bb') || buildCoverFallback(tr.collectionName, tr.artistName),
+                notes: `Coincidencia en tema "${tr.trackName}" y álbum dentro de ${displayGenre} (${yr}), nivel ${state.depth}.`,
+                links: tr.collectionViewUrl ? { appleMusic: tr.collectionViewUrl } : {}
+              };
+              if (albumMatchesStrictGenre({ ...tr, matchedTrack: tr.trackName }, matchedGenreObj, rawGenre)) {
+                strictCandidates.push(candidateFromSong);
+              } else {
+                looseCandidates.push(candidateFromSong);
+              }
+            }
+          });
+        }
+      }
+
+      if (signal.aborted || token !== state.searchToken) return;
+
+      let candidates = strictCandidates.length > 0
+        ? strictCandidates
+        : (rawGenre && normalizeText(rawGenre) !== 'sorpresa'
+            ? looseCandidates.filter(c => albumMatchesStrictGenre(c, matchedGenreObj, rawGenre))
+            : looseCandidates);
+
+      if (candidates.length === 0) {
+        const refFilteredFallback = CURATED_FALLBACK_ALBUMS.filter(a => {
+          const inYears = a.year >= minYear && a.year <= maxYear;
+          if (!inYears) return false;
+          if (state.refBands.length > 0) {
+            return matchesReferenceSound(a.artist, a.genre);
+          }
+          if (rawGenre && normalizeText(rawGenre) !== 'sorpresa') {
+            return albumMatchesStrictGenre(a, matchedGenreObj, rawGenre);
+          }
+          return true;
+        });
+        candidates = refFilteredFallback.length > 0
+          ? refFilteredFallback
+          : CURATED_FALLBACK_ALBUMS.map(a => ({
+              ...a,
+              genre: inferredGenre && normalizeText(inferredGenre) !== 'sorpresa' ? inferredGenre : a.genre
+            }));
+      }
+
+      const seenKeys = new Set([
+        ...(state.currentAlbum ? [`${normalizeText(state.currentAlbum.artist)}::${normalizeText(state.currentAlbum.title)}`] : []),
+        ...state.history.map(h => `${normalizeText(h.artist)}::${normalizeText(h.title)}`),
+        ...state.seenAlbums
+      ]);
+
+      const similarCandidates = candidates.filter(c => !refBandNormSet.has(normalizeText(c.artist)));
+      const freshSimilar = similarCandidates.filter(c => !seenKeys.has(`${normalizeText(c.artist)}::${normalizeText(c.title)}`));
+      const freshAny = candidates.filter(c => !seenKeys.has(`${normalizeText(c.artist)}::${normalizeText(c.title)}`));
+
+      let pool = [];
+      if (state.refBands.length > 0) {
+        if (freshSimilar.length > 0 && (freshAny.length === 0 || cryptoRandomInt(100) < 80)) {
+          pool = freshSimilar;
+        } else if (freshAny.length > 0) {
+          pool = freshAny;
+        } else {
+          state.seenAlbums = [];
+          safeStorageSet(STORAGE_KEYS.seen, state.seenAlbums);
+          pool = similarCandidates.length > 0 ? similarCandidates : candidates;
+        }
+      } else {
+        if (freshAny.length > 0) {
+          pool = freshAny;
+        } else {
+          state.seenAlbums = [];
+          safeStorageSet(STORAGE_KEYS.seen, state.seenAlbums);
+          pool = candidates;
+        }
+      }
+
+      const shuffledPool = shuffleArray(pool);
+      const chosen = shuffledPool[cryptoRandomInt(shuffledPool.length)];
+
+      const [tracklist, directLinks] = await Promise.all([
+        fetchAlbumTracklist(chosen, signal),
+        resolveDirectLinks(chosen, signal)
+      ]);
+
+      if (signal.aborted || token !== state.searchToken) return;
+
+      const firstPreview = tracklist.find(t => t.previewUrl);
+      const finalAlbum = {
+        ...chosen,
+        cover: chosen.cover || buildCoverFallback(chosen.title, chosen.artist),
+        links: directLinks,
+        tracks: tracklist,
+        previewUrl: firstPreview?.previewUrl || '',
+        previewName: firstPreview?.title || ''
+      };
+
+      btnCancel.classList.add('hidden');
+      displayAlbum(finalAlbum, true);
+    }
+
+    async function searchArtistDiscography() {
+      const q = document.getElementById('artistSearchInput').value.trim();
+      if (!q) return;
+
+      const token = ++state.searchToken;
+      if (state.abortController) state.abortController.abort();
+      state.abortController = new AbortController();
+      const signal = state.abortController.signal;
+
+      const btnCancel = document.getElementById('btnCancelArtistSearch');
+      btnCancel.classList.remove('hidden');
+      const grid = document.getElementById('discographyGrid');
+      grid.innerHTML = `<div class="col-span-full text-xs font-mono text-amber-400 py-3">Buscando discografía oficial de "${q}"...</div>`;
+
+      const [itunesData, dzData] = await Promise.all([
+        fetchJsonSafe(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=album&limit=35`, signal, 4200),
+        fetchDeezerJsonp(`https://api.deezer.com/search/album?q=${encodeURIComponent(q)}&limit=35`, signal, 3800)
+      ]);
+
+      if (signal.aborted || token !== state.searchToken) return;
+      btnCancel.classList.add('hidden');
+
+      const mergedMap = new Map();
+
+      (itunesData?.results || []).forEach(item => {
+        if (!item.collectionName || !item.artistName) return;
+        const key = `${normalizeText(item.artistName)}::${normalizeText(item.collectionName)}`;
+        const fallbackImg = buildCoverFallback(item.collectionName, item.artistName);
+        const specificGenre = resolveArtistSpecificGenre(item.artistName, item.primaryGenreName);
+        mergedMap.set(key, {
+          collectionId: item.collectionId,
+          title: item.collectionName,
+          artist: item.artistName,
+          year: item.releaseDate ? parseInt(item.releaseDate.slice(0, 4), 10) : 2000,
+          genre: specificGenre,
+          cover: (item.artworkUrl100 || '').replace('100x100bb', '400x400bb') || fallbackImg,
+          fullCover: (item.artworkUrl100 || '').replace('100x100bb', '600x600bb') || fallbackImg,
+          links: item.collectionViewUrl ? { appleMusic: item.collectionViewUrl } : {},
+          sources: ['Apple Music']
+        });
+      });
+
+      (dzData?.data || []).forEach(dz => {
+        if (!dz.title || !dz.artist?.name) return;
+        const key = `${normalizeText(dz.artist.name)}::${normalizeText(dz.title)}`;
+        const yr = dz.release_date ? parseInt(dz.release_date.slice(0, 4), 10) : 2000;
+        const fallbackImg = buildCoverFallback(dz.title, dz.artist.name);
+        const specificGenre = resolveArtistSpecificGenre(dz.artist.name, '');
+        if (mergedMap.has(key)) {
+          const existing = mergedMap.get(key);
+          if (dz.link) existing.links.deezer = dz.link;
+          if (!existing.genre || existing.genre === 'Música' || existing.genre === 'Deezer') {
+            existing.genre = specificGenre;
+          }
+          if (!existing.cover || existing.cover.startsWith('data:image/svg+xml')) {
+            existing.cover = dz.cover_medium || dz.cover_big || fallbackImg;
+            existing.fullCover = dz.cover_xl || dz.cover_big || dz.cover_medium || fallbackImg;
+          }
+          if (!existing.sources.includes('Deezer')) existing.sources.push('Deezer');
+        } else {
+          mergedMap.set(key, {
+            collectionId: null,
+            title: dz.title,
+            artist: dz.artist.name,
+            year: yr,
+            genre: specificGenre,
+            cover: dz.cover_medium || dz.cover_big || fallbackImg,
+            fullCover: dz.cover_xl || dz.cover_big || dz.cover_medium || fallbackImg,
+            links: dz.link ? { deezer: dz.link } : {},
+            sources: ['Deezer']
+          });
+        }
+      });
+
+      const albums = Array.from(mergedMap.values()).sort((a, b) => (a.year || 0) - (b.year || 0));
+
+      if (albums.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-xs text-slate-400 py-3">No se encontraron álbumes para "${q}". Probá con otro nombre.</div>`;
+        return;
+      }
+
+      grid.innerHTML = albums.map((item, idx) => {
+        const safeT = String(item.title || '').replace(/'/g, '');
+        const safeA = String(item.artist || '').replace(/'/g, '');
+        return `
+          <button type="button" data-disco-idx="${idx}" class="disco-card group text-left p-2.5 rounded-xl bg-hud-card border border-hud-border hover:border-amber-500/50 transition space-y-2">
+            <div class="aspect-square rounded-lg overflow-hidden bg-slate-950">
+              <img src="${item.cover}" alt="${item.title}" onerror="this.onerror=null;this.src=buildCoverFallback('${safeT}','${safeA}');" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-white truncate">${item.title}</div>
+              <div class="text-[11px] font-mono text-slate-400">${item.year || '—'} · ${item.artist}</div>
+              <div class="text-[10px] font-mono text-amber-400/80 truncate mt-0.5">${(item.sources || []).join(' + ')}</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('.disco-card').forEach((card, idx) => {
+        card.addEventListener('click', async () => {
+          const item = albums[idx];
+          const stageEl = document.getElementById('mainStage');
+          stageEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          showStage('stageLoading');
+          document.getElementById('loadingStatusText').textContent = `Abriendo "${item.title}" de ${item.artist}...`;
+
+          const baseAlbum = {
+            collectionId: item.collectionId,
+            title: item.title,
+            artist: item.artist,
+            year: item.year || 2000,
+            genre: resolveArtistSpecificGenre(item.artist, item.genre),
+            depth: state.depth,
+            cover: item.fullCover || item.cover || buildCoverFallback(item.title, item.artist),
+            notes: `Álbum seleccionado desde la discografía de ${item.artist} (${(item.sources || []).join(', ')}).`,
+            links: item.links || {}
+          };
+
+          const [tracklist, directLinks] = await Promise.all([
+            fetchAlbumTracklist(baseAlbum, null),
+            resolveDirectLinks(baseAlbum, null)
+          ]);
+
+          const firstPreview = tracklist.find(t => t.previewUrl);
+          displayAlbum({
+            ...baseAlbum,
+            links: directLinks,
+            tracks: tracklist,
+            previewUrl: firstPreview?.previewUrl || '',
+            previewName: firstPreview?.title || ''
+          }, true);
+        });
+      });
+    }
+
+    function isInCollection(album) {
+      if (!album) return false;
+      return state.collection.some(c =>
+        normalizeText(c.artist) === normalizeText(album.artist) &&
+        normalizeText(c.title) === normalizeText(album.title)
+      );
+    }
+
+    function updateCollectionButtonUI() {
+      const btn = document.getElementById('btnToggleCollection');
+      const icon = document.getElementById('btnCollectionIcon');
+      const text = document.getElementById('btnCollectionText');
+      const saved = isInCollection(state.currentAlbum);
+
+      if (saved) {
+        btn.className = 'px-4 py-2.5 rounded-xl border font-semibold text-xs sm:text-sm transition flex items-center gap-2 bg-cyan-500/20 border-cyan-500 text-cyan-200';
+        icon.textContent = '★';
+        text.textContent = 'Guardado en Colección';
+      } else {
+        btn.className = 'px-4 py-2.5 rounded-xl border font-semibold text-xs sm:text-sm transition flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200';
+        icon.textContent = '☆';
+        text.textContent = 'Guardar en Colección';
+      }
+    }
+
+    function displayAlbum(album, saveToHist = true) {
+      state.currentAlbum = album;
+      showStage('stageResult');
+
+      const coverEl = document.getElementById('resCover');
+      const fallbackSrc = buildCoverFallback(album.title, album.artist);
+      coverEl.onerror = () => {
+        coverEl.onerror = null;
+        coverEl.src = fallbackSrc;
+      };
+      coverEl.src = album.cover || fallbackSrc;
+
+      document.getElementById('resYear').textContent = album.year || '—';
+      document.getElementById('resGenre').textContent = album.genre || 'Música';
+      const depthNames = { 1: '1. Esenciales', 2: '2. Culto', 3: '3. Indie / Under', 4: '4. Ultra-Under' };
+      document.getElementById('resDepthTag').textContent = depthNames[album.depth] || 'Curaduría';
+      document.getElementById('resTitle').textContent = album.title;
+      document.getElementById('resArtist').textContent = album.artist;
+      document.getElementById('resNotes').textContent = album.notes || '';
+
+      const previewBox = document.getElementById('previewBox');
+      const audioPlayer = document.getElementById('audioPlayer');
+      if (album.previewUrl) {
+        previewBox.classList.remove('hidden');
+        document.getElementById('previewTrackName').textContent = album.previewName || 'Muestra';
+        audioPlayer.src = album.previewUrl;
+      } else {
+        previewBox.classList.add('hidden');
+        audioPlayer.pause();
+        audioPlayer.removeAttribute('src');
+      }
+
+      const tracklistSection = document.getElementById('tracklistSection');
+      const tracklistContainer = document.getElementById('tracklistContainer');
+      const tracklistCount = document.getElementById('tracklistCount');
+      const tracks = Array.isArray(album.tracks) ? album.tracks : [];
+
+      if (tracks.length > 0) {
+        tracklistSection.classList.remove('hidden');
+        tracklistCount.textContent = `${tracks.length} canción(es)`;
+        tracklistContainer.innerHTML = tracks.map((tr, idx) => `
+          <div class="px-3 py-2 rounded-lg bg-slate-950/90 border border-slate-800/90 flex items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="font-mono text-slate-500 w-5 text-right shrink-0">${tr.number || idx + 1}</span>
+              <span class="text-slate-200 font-medium truncate">${tr.title}</span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              ${tr.duration ? `<span class="font-mono text-slate-500">${tr.duration}</span>` : ''}
+              ${tr.previewUrl ? `<button type="button" data-track-idx="${idx}" class="play-track-btn px-2 py-1 rounded bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-mono text-[10px]">▶ 30s</button>` : ''}
+            </div>
+          </div>
+        `).join('');
+
+        tracklistContainer.querySelectorAll('.play-track-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const tr = tracks[Number(btn.dataset.trackIdx)];
+            if (!tr || !tr.previewUrl) return;
+            previewBox.classList.remove('hidden');
+            document.getElementById('previewTrackName').textContent = tr.title;
+            audioPlayer.src = tr.previewUrl;
+            audioPlayer.play().catch(() => {});
+          });
+        });
+      } else {
+        tracklistSection.classList.add('hidden');
+        tracklistContainer.innerHTML = '';
+      }
+
+      const cleanLinks = sanitizeDirectPlatformLinks(album.links);
+      const platformsGrid = document.getElementById('directPlatformsGrid');
+      const availablePlatforms = PLATFORM_CONFIG.filter(cfg => Boolean(cleanLinks[cfg.key]));
+
+      document.getElementById('platformsCount').textContent = availablePlatforms.length
+        ? `${availablePlatforms.length} enlace(s) directo(s) al álbum`
+        : 'Sin enlaces directos verificados';
+
+      if (availablePlatforms.length === 0) {
+        platformsGrid.innerHTML = `<div class="col-span-full p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-xs text-slate-400">No se detectaron enlaces directos verificados a este álbum.</div>`;
+      } else {
+        platformsGrid.innerHTML = availablePlatforms.map(cfg => {
+          const url = cleanLinks[cfg.key];
+          return `
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-600 transition flex items-center justify-between gap-2">
+              <a href="${url}" target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0 group">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded text-[11px] font-semibold border ${cfg.badge}">${cfg.name}</span>
+                  <span class="text-xs text-slate-300 group-hover:text-white font-medium">Abrir álbum ↗</span>
+                </div>
+                <div class="text-[10px] font-mono text-slate-500 truncate mt-1">${url.replace('https://', '')}</div>
+              </a>
+              <button type="button" data-copy="${url}" class="copy-link-btn px-2 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[10px] font-mono text-slate-300 shrink-0" title="Copiar enlace directo">Copiar</button>
+            </div>
+          `;
+        }).join('');
+
+        platformsGrid.querySelectorAll('.copy-link-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            copyTextFallback(btn.dataset.copy);
+            const orig = btn.textContent;
+            btn.textContent = '✓';
+            setTimeout(() => { btn.textContent = orig; }, 1200);
+          });
+        });
+      }
+
+      updateCollectionButtonUI();
+      if (saveToHist) recordInHistory(album);
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      document.getElementById('historyCount').textContent = state.history.length;
+
+      if (state.history.length === 0) {
+        list.innerHTML = `<div class="text-xs text-slate-500 py-6 text-center">Todavía no hay búsquedas registradas.</div>`;
+        return;
+      }
+
+      list.innerHTML = state.history.map((item, idx) => {
+        const safeT = String(item.title || '').replace(/'/g, '');
+        const safeA = String(item.artist || '').replace(/'/g, '');
+        const cover = item.cover || buildCoverFallback(item.title, item.artist);
+        return `
+          <button type="button" data-hist-idx="${idx}" class="hist-row w-full p-2.5 rounded-xl bg-hud-card/70 hover:bg-hud-card border border-hud-border hover:border-amber-500/40 transition flex items-center gap-3 text-left">
+            <img src="${cover}" alt="" onerror="this.onerror=null;this.src=buildCoverFallback('${safeT}','${safeA}');" class="w-11 h-11 rounded-lg object-cover bg-slate-950 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <div class="text-sm font-semibold text-white truncate">${item.title}</div>
+              <div class="text-xs text-slate-400 truncate">${item.artist} · <span class="font-mono text-amber-400/90">${item.year}</span></div>
+            </div>
+            <span class="text-[11px] font-mono text-slate-500 shrink-0">Abrir →</span>
+          </button>
+        `;
+      }).join('');
+
+      list.querySelectorAll('.hist-row').forEach(row => {
+        row.addEventListener('click', async () => {
+          const item = state.history[Number(row.dataset.histIdx)];
+          if (!item) return;
+          if (!item.tracks && item.collectionId) {
+            item.tracks = await fetchAlbumTracklist(item, null);
+          }
+          displayAlbum(item, false);
+        });
+      });
+    }
+
+    function renderCollection() {
+      const list = document.getElementById('collectionList');
+      document.getElementById('collectionCount').textContent = state.collection.length;
+
+      if (state.collection.length === 0) {
+        list.innerHTML = `<div class="text-xs text-slate-500 py-6 text-center">Tu colección está en 0. Guardá solo los discos que elijas manualmente.</div>`;
+        return;
+      }
+
+      list.innerHTML = state.collection.map((item, idx) => {
+        const safeT = String(item.title || '').replace(/'/g, '');
+        const safeA = String(item.artist || '').replace(/'/g, '');
+        const cover = item.cover || buildCoverFallback(item.title, item.artist);
+        return `
+          <div class="p-2.5 rounded-xl bg-hud-card/70 border border-hud-border flex items-center justify-between gap-3">
+            <button type="button" data-col-open="${idx}" class="flex items-center gap-3 min-w-0 flex-1 text-left">
+              <img src="${cover}" alt="" onerror="this.onerror=null;this.src=buildCoverFallback('${safeT}','${safeA}');" class="w-11 h-11 rounded-lg object-cover bg-slate-950 shrink-0" />
+              <div class="min-w-0 flex-1">
+                <div class="text-sm font-semibold text-white truncate">${item.title}</div>
+                <div class="text-xs text-slate-400 truncate">${item.artist} · <span class="font-mono text-cyan-400">${item.year}</span></div>
+              </div>
+            </button>
+            <button type="button" data-col-del="${idx}" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-500/40 text-xs text-slate-400 hover:text-rose-300 transition">Quitar</button>
+          </div>
+        `;
+      }).join('');
+
+      list.querySelectorAll('button[data-col-open]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = state.collection[Number(btn.dataset.colOpen)];
+          if (item) displayAlbum(item, false);
+        });
+      });
+
+      list.querySelectorAll('button[data-col-del]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.collection.splice(Number(btn.dataset.colDel), 1);
+          safeStorageSet(STORAGE_KEYS.collection, state.collection);
+          renderCollection();
+          updateCollectionButtonUI();
+        });
+      });
+    }
+
+    function initApp() {
+      try {
+        initPersistence();
+        updateGenreHelper('');
+      } catch (e) {}
+
+      const tabDiscover = document.getElementById('tabDiscover');
+      const tabArtist = document.getElementById('tabArtist');
+      const panelDiscover = document.getElementById('panelDiscover');
+      const panelArtist = document.getElementById('panelArtist');
+
+      tabDiscover.addEventListener('click', () => {
+        panelDiscover.classList.remove('hidden');
+        panelArtist.classList.add('hidden');
+        tabDiscover.className = 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition flex items-center gap-2';
+        tabArtist.className = 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-hud-panel text-slate-300 hover:text-white border border-hud-border transition flex items-center gap-2';
+      });
+
+      tabArtist.addEventListener('click', () => {
+        panelArtist.classList.remove('hidden');
+        panelDiscover.classList.add('hidden');
+        tabArtist.className = 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition flex items-center gap-2';
+        tabDiscover.className = 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-hud-panel text-slate-300 hover:text-white border border-hud-border transition flex items-center gap-2';
+      });
+
+      const genreInput = document.getElementById('genreInput');
+      genreInput.addEventListener('focus', () => renderGenreDropdown(genreInput.value));
+      genreInput.addEventListener('input', () => {
+        updateGenreHelper(genreInput.value);
+        renderGenreDropdown(genreInput.value);
+      });
+      bindAutocompleteKeyboard(genreInput, '#genreDropdown', () => {
+        updateGenreHelper(genreInput.value);
+        document.getElementById('genreDropdown').classList.add('hidden');
+        discoverRandomAlbum();
+      });
+      document.getElementById('btnClearGenre').addEventListener('click', () => {
+        genreInput.value = '';
+        updateGenreHelper('');
+        document.getElementById('genreDropdown').classList.add('hidden');
+      });
+
+      const refInput = document.getElementById('refBandInput');
+      refInput.addEventListener('input', () => {
+        clearTimeout(state.acDebounce);
+        const val = refInput.value.trim();
+        if (!val) {
+          renderAutocomplete([]);
+          return;
+        }
+        state.acDebounce = setTimeout(async () => {
+          const results = await searchArtistSuggestions(val, null);
+          renderAutocomplete(results);
+        }, 200);
+      });
+
+      bindAutocompleteKeyboard(refInput, '#autocompleteDropdown', () => {
+        const val = refInput.value.trim();
+        if (val) {
+          addReferenceBand(val);
+          refInput.value = '';
+          renderAutocomplete([]);
+        }
+      });
+
+      document.getElementById('btnAddRef').addEventListener('click', () => {
+        const val = refInput.value.trim();
+        if (val) {
+          addReferenceBand(val);
+          refInput.value = '';
+          renderAutocomplete([]);
+        }
+      });
+
+      const artistInput = document.getElementById('artistSearchInput');
+      artistInput.addEventListener('input', () => {
+        clearTimeout(state.artistAcDebounce);
+        const val = artistInput.value.trim();
+        if (!val) {
+          renderArtistAutocomplete([]);
+          return;
+        }
+        state.artistAcDebounce = setTimeout(async () => {
+          const results = await searchArtistSuggestions(val, null);
+          renderArtistAutocomplete(results);
+        }, 200);
+      });
+
+      bindAutocompleteKeyboard(artistInput, '#artistAutocompleteDropdown', () => {
+        renderArtistAutocomplete([]);
+        searchArtistDiscography();
+      });
+
+      document.addEventListener('click', (e) => {
+        const gBox = document.getElementById('genreDropdown');
+        if (gBox && !gBox.contains(e.target) && e.target !== genreInput) {
+          gBox.classList.add('hidden');
+        }
+        if (!e.target.closest('#autocompleteDropdown') && e.target !== refInput) {
+          renderAutocomplete([]);
+        }
+        if (!e.target.closest('#artistAutocompleteDropdown') && e.target !== artistInput) {
+          renderArtistAutocomplete([]);
+        }
+      });
+
+      document.getElementById('btnEqualYear').addEventListener('click', () => {
+        const fromVal = document.getElementById('yearFrom').value;
+        if (fromVal) document.getElementById('yearTo').value = fromVal;
+      });
+      document.getElementById('btnResetYears').addEventListener('click', () => {
+        document.getElementById('yearFrom').value = '';
+        document.getElementById('yearTo').value = '';
+      });
+      document.querySelectorAll('.decade-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('yearFrom').value = btn.dataset.from;
+          document.getElementById('yearTo').value = btn.dataset.to;
+        });
+      });
+
+      const depthLabels = {
+        1: 'NIVEL 1 • ESENCIALES & CLÁSICOS',
+        2: 'NIVEL 2 • JOYAS DE CULTO',
+        3: 'NIVEL 3 • INDIE & UNDERGROUND',
+        4: 'NIVEL 4 • ULTRA-UNDER & RAREZAS'
+      };
+      document.querySelectorAll('.depth-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.depth = Number(btn.dataset.depth);
+          document.getElementById('depthLabel').textContent = depthLabels[state.depth];
+          document.querySelectorAll('.depth-btn').forEach(b => {
+            const active = Number(b.dataset.depth) === state.depth;
+            b.className = active
+              ? 'depth-btn p-3 rounded-xl border border-amber-500 bg-amber-500/15 text-left transition'
+              : 'depth-btn p-3 rounded-xl border border-hud-border bg-hud-card/60 hover:border-slate-600 text-left transition';
+          });
+        });
+      });
+
+      document.getElementById('btnDiscover').addEventListener('click', discoverRandomAlbum);
+      document.getElementById('btnCancelSearch').addEventListener('click', cancelCurrentSearch);
+      document.getElementById('btnSearchArtist').addEventListener('click', () => {
+        renderArtistAutocomplete([]);
+        searchArtistDiscography();
+      });
+      document.getElementById('btnCancelArtistSearch').addEventListener('click', cancelCurrentSearch);
+
+      document.getElementById('btnResetStage').addEventListener('click', () => {
+        state.currentAlbum = null;
+        document.getElementById('audioPlayer').pause();
+        showStage('stageIdle');
+      });
+
+      document.getElementById('btnToggleCollection').addEventListener('click', () => {
+        if (!state.currentAlbum) return;
+        if (isInCollection(state.currentAlbum)) {
+          state.collection = state.collection.filter(c =>
+            !(normalizeText(c.artist) === normalizeText(state.currentAlbum.artist) &&
+              normalizeText(c.title) === normalizeText(state.currentAlbum.title))
+          );
+        } else {
+          state.collection = mergeAlbums([state.currentAlbum], state.collection);
+        }
+        safeStorageSet(STORAGE_KEYS.collection, state.collection);
+        renderCollection();
+        updateCollectionButtonUI();
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>
